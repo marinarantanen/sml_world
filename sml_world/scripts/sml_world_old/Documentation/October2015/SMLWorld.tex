@@ -1,0 +1,79 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{units} % For \nicefrac
+\usepackage{algorithm2e} % For algorithms
+
+\begin{document}
+
+\title{SML World}
+\date{2015}
+\author{Rui Oliveira\\ Smart Mobility Lab, KTH}
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+The SML World is a tool for Autonomous Driving Research and Testing. It was created at KTH Royal Institute of Technology and it was developed to tailor the specific needs and capabilites of the Smart Mobility Lab.
+
+This tool provides means of simulation, control, interaction and visualisation of autonomous vehicles in a realistic environment. This environment can be purely virtual, purely real, or a somewhere in between, since the system allows for the integration with scaled trucks located at the Smart Mobility Lab.
+
+This document serves an introduction to the capabilities of the tool, and when deemed necessary it also explains important concepts in its implementation. It is the objective of the author that the reader gets a good understanding of the SML World after reading this document. The reader should also feel knowledgeable enough to start using (and improving) the SML World for one's own needs.
+
+Section \ref{sec:the_sml_world} will give an introduction to the general structure of the SML World. The following sections will then go into the detail of the several modules that make the SML World run.
+
+First we start by describing the Road Module in section \ref{sec:the_road_module}. This module is responsible for the road network processing.
+
+The Simulation Module will be explained in section \ref{sec:the_simulation_module}. Here we specify how the car's dynamics and sensor readings are computed.
+
+In section \ref{sec:the_v2v_module} we explain how vehicle-to-vehicle communication is achieved. We detail the two main modes of communication, globally, using network communications or locally using Wi-Fi communications.
+
+The previous modules are enough to implement a simulation environment. By simply adding smart vehicles, as the ones explained in section \ref{sec:the_smart_vehicle}, we will finally have an autonomous driving simulator. However, one also wishes to see what is happening, cue the Visualisation Module, which is explained in section \ref{sec:the_visualisation_module}.
+
+The next module to be described is specific to the Smart Mobility Lab, as it requires a Motion Capture System to work. Section \ref{sec:the_motion_capture_model}, explains the Motion Capture Module, and how it can be used to turn our computer simulation into a real life scaled simulation.
+
+Finally in section \ref{sec:the_real_trucks_module} we explain the Scaled Trucks Module, which allows the usage of the scaled trucks present in the Smart Mobility Lab.
+
+\include{SectionTheSMLWorld}
+
+\include{SectionTheRoadModule}
+
+\include{SectionTheSimulationModule}
+
+\include{SectionTheV2VModule}
+
+\include{SectionTheSmartVehicle}
+
+\include{SectionTheVisualisationModule}
+
+\include{SectionTheMotionCaptureModule}
+
+\include{SectionTheRealTrucksModule}
+
+\include{SectionContributors}
+
+\begin{thebibliography}{9}
+
+\bibitem{OSM}
+OpenStreetMap Wiki \url{http://wiki.openstreetmap.org/wiki/Main_Page}
+
+\bibitem{JOSM}
+JOSM \url{https://josm.openstreetmap.de/}
+
+\bibitem{pygame}
+pygame \url{www.pygame.org/}
+
+\end{thebibliography}
+
+
+\end{document}

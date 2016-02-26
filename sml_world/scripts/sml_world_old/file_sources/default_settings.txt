@@ -1,0 +1,37 @@
+qualisys_info:('130.237.43.74', 22224)
+projector_info:('localhost', 8000)
+xml_file_location:RoadModule\HighwaySML.xml
+activate_draw_origin:False
+draw_sensors:False
+draw_signal:False
+show_ids:False
+activate_fps:False
+activate_states_from_mocap:False
+activate_states_from_world:False
+only_simulated_vehicles:False
+only_real_vehicles:False
+main_desired_rate:10
+mocap_desired_rate:50
+highlight_desired_rate:5
+projector_manager_desired_rate:50
+command_central_desired_rate:30
+v2i_desired_rate:2
+v2v_desired_rate:4
+simulated_vehicles_desired_rate:50
+vehicle_simulation_desired_rate:50
+simulator_receiver_desired_rate:30
+simulator_desired_rate:10
+vehicle_manager_desired_rate:5
+vehicle_controller_desired_rate:50
+vehicle_command_manager_desired_rate:50
+vehicle_output_manager_desired_rate:50
+projector_area:[0.0, 4.48, 0.0, 0.0]
+load_saved_background:True
+projector_wait_for_command_central:False
+log_xml:False
+number_vehicles:0
+server_port:8000
+buffersize:128096
+v2v_method:communications
+v2v_range:50.0
+v2v_angle:30.0

@@ -1,0 +1,11 @@
+[General]
+intention1=left
+intention2=straight
+intention3=straight
+scenario=Scenario 1
+NlaneA=0
+NlaneB=0
+distance1=0
+distance2=0
+distance3=0
+step=0.0199999995529652

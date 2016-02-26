@@ -1,0 +1,66 @@
+
+\section{The Visualisation Module}
+\label{sec:the_visualisation_module}
+
+The VisualisationModule class is responsible for showing the current state of the environment, and the vehicles in it, in an appealing and realistic fashion.
+
+To do so, the Visualisation Module opens up a Visualisation Window, where the user can get a bird's eye view of the environment, that is updated in real time. This module relies heavily on Python's graphical library pygame.
+
+The Visualisation Module interfaces with the SML World through the use of UDP communications, implemented in the auxiliary classes VisualisationModuleSender and VisualisationModuleReceiver.
+
+\subsection{The Visualisation Module}
+
+The objective of the Visualisation Module is to show to the user, the environment in a Visualisation Window. One of the first 
+
+\subsubsection{Loading the Environment Information}
+
+The first step of the Visualisation Module is to load the environment information. This corresponds to the image depicting the environment, and the properties of this image.
+
+To do so, the class constructor receives an argument \texttt{map\_filename}. This corresponds to a string with the location and name of the image to be loaded. This string must not have the extension of the image in it, since we will simply use the name of the image to fetch, both the image, and the metadata associated with the image. The image is simply obtained by appending the bitmap image extension (\texttt{map\_filename + .bmp}). The metadata of the image can be found as \texttt{map\_filename + .meta}.
+
+The metadata file contains information about the image size, width and height, and the ration of pixels per meter. This information is necessary in order to know where in the image the vehicles should be drawn, given their Cartesian coordinates.
+
+\subsubsection{From Meters To Pixel}
+
+An important step in the Visualisation Tool, is to know where to draw the vehicles. Or in more simple terms, if I have a vehicle at cartesian coordinates $(x, y)$, what is the corresponding pixel position? To do so we need to define our meters to pixel converter function.
+
+By default, all of the generated images, have the cartesian coordinate system originating at the center of the image. This means, that an object in coordinates $(x = 0, y = 0)$, will have its corresponding pixel be $(p_x = c_x, p_y = c_y)$, where $c_x$ and $c_y$ are the halves of the image width and image height respectively.
+
+If an object is located one meter to the right of the coordinate origin, $(x = 1, y = 0)$, we now need to add the corresponding offset in pixels to find the respective pixel. This is achieved, very simply, by multiplying by the \texttt{pixel\_per\_meter} ratio, that converts meters in the SML World to pixels. The corresponding pixel to $(x = 1, y = 0)$ would be $(p_x = c_x + pixel\_per\_meter, p_y = c_y)$.
+
+Applying the same idea, to offsets in the $y$ dimensions, we arrive at the general meters to pixel converter function: $(p_x, p_y) = (c_x + pixel\_per\_meter\times x, c_y + pixel\_per\_meter\times y)$.
+
+An important note must be made, since the coordinate sytem of the Pygame image is defined in a different way (SEE FIGURE), the actual converting function is given by $(p_x, p_y) = (c_x + pixel\_per\_meter\times x, c_y - pixel\_per\_meter\times y)$.
+
+
+\subsubsection{Adjusting to Screen Size}
+
+The Visualisation Module user can determine the preferred pixel width and height for the visualisation window. This allows the Visualisation Module to run in both small and big screens.
+
+In order to achieve this the user can give the arguments \texttt{window\_width} and \texttt{window\_height} to the class constructor. The class will then compute the necessary image transforms in order to convert the source image, into an image with the desired dimensions of the visualisation window.
+
+
+\subsubsection{Adjusting to SML's Ceiling Projector}
+
+Another constructor argument of the class is the boolean \texttt{ground\_projection}. When set to True we will assume that the user wishes the visualisation window to be displayed on SML's ground projector.
+
+In order to correctly display the image on the ground projector, some extra steps need to be taken. First we measured the dimensions, in meters, of the SML Projector ground display. This gives us the area/positions, in meters, where the display will be on the ground. Knowing that the SML is a 1/32 scale model (mostly because of the trucks in use), we can multiply the original projector dimensions by 32, and we will obtain the Simulation Dimensions of the projector, that is, the dimensions, in Simulator meters, that the projector corresponds to.
+
+Knowing these dimensions, we get the corresponding section of the original image, which is then scaled to the Visualisation Window dimensions. The visualisation windo dimensions here are simply the size of the projector screen, which is usually 1400*1050.
+
+An extra detail, is that the visualisation window will not have a bordering frame, this can be achieved by adding the flag \texttt{pygame.NOFRAME}, to the \texttt{pygame.display.set\_mode} function.
+
+\subsubsection{Drawing Vehicles}
+
+
+\subsubsection{Drawing Ids}
+
+
+\subsubsection{Drawing the next frame}
+
+
+\subsection{Threading restrictions}
+
+
+\subsection{Interfacing with the SML World}
+

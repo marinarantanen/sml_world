@@ -1,0 +1,63 @@
+
+\section{The V2V Module}
+\label{sec:the_v2v_module}
+
+The V2V Module is responsible for simulating message transmissions between vehicles in the SML World. Autonomous vehicles might require an exchange of information between them, which can be achieved in several ways. The V2V Module, will try to simulate the possibilities and constraints of Network and Wi-Fi based communications between vehicles. While the Network communications allow for vehicles to speak with each other, no matter how distant they are, Wi-Fi allows only for communications over a short range. However Wi-Fi performs as a much faster rate, being able to transmit more information and with a lower delay than the Network. Details about each method's implementation will be given in the following pages.
+
+\subsection{The V2V Module Class}
+
+The V2V Module Class gives the SML World the possibility of simply instantiating an object of the class that will initialize itself and start running, in parallel, an execution loop in a individual thread of execution.
+
+This object will have acess to the SML World, and will interact, reading and modifying, with the Objects Dictionary. This is done in order to update the messages that each vehicle is sending or receiving.
+
+At the moment, the V2V Module Class is assuming that the only vehicles of the type SmartVehicle (\texttt{smartvehicle.py}) are able to exchange messages. They do so by making use of incoming and outgoing message buffers, for the Network and Wi-Fi channels. These channels are implemented as attributes of the SmartVehicle class and can be interfaced with through the SmartVehicle methods \texttt{set\_network\_input\_messages}, \texttt{get\_network\_output\_messages}, \texttt{set\_wifi\_input\_messages} and \texttt{get\_wifi\_output\_messages}.
+
+The messages can be implement as any object desired, examples of possible objects are strings, dictionaries or a user-made custom class. It is the task of the SmartVehicle to know how to encode and decode such messages.
+
+\subsubsection{Constructor}
+
+To instantiate the \texttt{SimulatorModule} class, a \texttt{loop\_rate} has to be provided, this will define the rate of the main loop that will run forever in it's own thread. This main loop is the one that simulates the communications of the SML World. More detail about the loop will be given in the following section. 
+
+The Constructor also gets a reference to the SML World, so that it can have access to it, and most importantly, interact with the Bodies Dictionary. 
+
+In the initialization process the attributes \texttt{v2v\_network\_rate} and \texttt{v2v\_wifi\_rate} are also defined. These determine the frequency at which messages can be exchanged by the Network and Wi-Fi channels.
+
+\subsubsection{Main Loop}
+
+The Main Loop will be running until the SML World is terminated. Its main function is to call the methods that simulate the exchange of communications between vehicles. The two methods implementing the communication exchanges are \texttt{network\_step} and \texttt{wifi\_step}.
+
+The Main Loop will be in charge of calling such methods with the correct rate, as given by attributes \texttt{v2v\_network\_rate} and \texttt{v2v\_wifi\_rate}. If the Main Loop cannot comply with its desired rate of \texttt{loop\_rate}, due to intensive processing for example, it will print warnings to the terminal.
+
+\subsection{Network Communication}
+
+The Network Communications are implemented by the method \texttt{network\_step}. This method will iterate over all the vehicles in the Vehicles Dictionary and collect their output messages, by polling the Vehicle's output network buffer through the method \texttt{get\_network\_output\_messages}.
+
+Once all the messages from all the vehicles are collected, we once again iterate over all of the vehicles and set them as inputs of every vehicle using the Vehicle method \texttt{set\_network\_input\_messages}. Messages sent by a specific vehicle are not returned to that same vehicle.
+
+\subsection{Wi-Fi Communication}
+
+The Wi-Fi Communications introduce an extra difficulty, which is related to the range of communications. Vehicles using Wi-Fi can only communicate with vehicles within a range of \texttt{v2v\_wifi\_range} meters.
+
+The following algorithm is used to simulate the Wi-Fi communications:
+
+\begin{algorithm}[H]
+
+ \For{EgoVehicle in Bodies Dictionary}{
+ 
+	InputMessages = Empty List 
+ 
+ 	\For{OtherVehicle in Bodies Dictionary except EgoVehicle}{
+ 	
+		\If{distance between EgoVehicle and OtherVehicle \textless v2v\_wifi\_range}{
+			Add OtherVehicle's \texttt{get\_wifi\_output\_messages} to InputMessages List
+		}
+	 	
+ 	}
+ 	
+	EgoVehicle's \texttt{set\_wifi\_input\_messages} = InputMessages
+ 	
+ }
+ \caption{Wifi Message Exchange Algorithm}
+\end{algorithm}
+
+The above algorithm, does not represent the actual implementation details, but it does represent the concept idea that is implemented.

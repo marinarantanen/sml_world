@@ -1,0 +1,49 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\begin{document}
+
+\title{Defining and Using the Driving Environment}
+\date{2015}
+\author{Rui Oliveira\\ Smart Mobility Lab, KTH}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+The first step when using the SML World, is to set up the environment to be simulated. This environment consists in the definition of the roads where the cars can move, and how the environment looks (forest areas, dirt areas, river areas, etc...).
+
+In this document two different things will be explained, in section \ref{sec:theroadnetwork} the construction and definition of the environment is explained. Section \ref{sec:roadmodule} explains how this environment can be used/interfaced with in the SML World.
+
+
+\include{SectionTheMap}
+
+\include{SectionTheRoadModule}
+
+
+Talk about how to draw patterns given a way and a tag.
+
+
+\begin{thebibliography}{9}
+
+\bibitem{OSM}
+OpenStreetMap Wiki \url{http://wiki.openstreetmap.org/wiki/Main_Page}
+
+\bibitem{JOSM}
+JOSM \url{https://josm.openstreetmap.de/}
+
+\bibitem{pygame}
+pygame \url{www.pygame.org/}
+
+\end{thebibliography}
+
+\end{document}
