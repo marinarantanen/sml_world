@@ -1,0 +1,20 @@
+SETUP
+1. Clone git repository
+        git clone <git-repository url>
+2. Set git configurations:
+        git config --global user.name <username>
+        git config --global user.email <email>
+
+RULES
+1. Do NOT add commits to the 'master' branch when
+   working on a new feature! 
+2. ALLWAYS work in a personal branch.
+        git branch <personal_branch_name>
+        git checkout <personal_branch_name>
+        OR
+        git checkout -b <personal_branch_name>
+3. MERGING to the master branch is done ONLY by the
+   Research Engineers, never by students.
+4. To integrate your personal branch into the master
+   branch create a 'pull request' on bitbucket.org and
+   add AT LEAST ONE Research Engineer as a Reviewer.
