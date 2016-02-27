@@ -15,7 +15,7 @@ import json
 import rospy
 from std_msgs.msg import String
 
-from sml_modules.visualization_module import VisualisationModule
+from sml_modules.visualization_module import Visualization
 from sml_modules.road_module import RoadModule
 
 def update_state(data, vis_module):
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     file_location = "/resources/scenarios/HighwaySML"
     road_module = RoadModule.RoadModule(base_path, file_location)
     # Initialize the visualization module
-    vis_module = VisualisationModule(base_path, file_location, 800, 600, 5, True)
+    vis_module = Visualization(base_path, file_location, 800, 600, 5, True)
     print "vis_module_started."
     vis_module.loop_iteration({})
     visualizer(vis_module)

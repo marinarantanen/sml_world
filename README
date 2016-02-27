@@ -41,7 +41,7 @@ TIPS
           commenting is not necessary
         * Use docstrings to describe what your function does.
           Ideally make use of the epydoc markup-language in these docstrings.
-          (=> http://epydoc.sourceforge.net/manual-epytext.html)
+          => http://epydoc.sourceforge.net/manual-epytext.html
           This allows the automatic generation of a throught documentation
           of your code and the code of all other contributors.
 3. If you code in python try to follow the style guide for python code:

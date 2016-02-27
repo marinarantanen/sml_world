@@ -14,9 +14,9 @@ import math
 from sml_modules import bodyclasses
 from vehicle_models import DummyVehicle
 
-class VisualisationModule:
+class Visualization:
     '''
-    VisualisationModule is a class to visually display
+    Visualization is a class to visually display
     the current state of the SML World.
     It is necessary that the thread running this class is the main 
     program thread, otherwise Pygame will not work correctly.
@@ -39,7 +39,7 @@ class VisualisationModule:
         # serve as background
         self.base_path = base_path
         map_filename = base_path+file_path
-        # Determines if the visualisation is meant to 
+        # Determines if the visualization is meant to 
         # be used for the ground projector at the
         # SML
         self.ground_projection = ground_projection
@@ -47,7 +47,7 @@ class VisualisationModule:
         # As measured by Rui [LEFT, RIGHT, DOWN, UP]
         self.projector_area = [3.360, 4.490, 2.920, 2.970]
 
-        # The refresh rate of the visualisation screen
+        # The refresh rate of the visualization screen
         self.refresh_rate = float(20)
 
         self.bg_surface = None
@@ -89,12 +89,12 @@ class VisualisationModule:
 
         Returns:
         A boolean indicating if the user closed the
-        visualisation window (True) or not (False)
+        visualization window (True) or not (False)
         '''
 
-        # Receive the lastest vehicle states information
+        # Receive the latest vehicle states information
         self.vehicles_dict = world_state
-        # Draw the the lastest vehicle states
+        # Draw the the latest vehicle states
         self.display_image()
 
         for event in pygame.event.get():
@@ -285,7 +285,7 @@ class VisualisationModule:
             y = 0
             os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
             
-            # pygame.NOFRAME makes the visualisation window not have a Frame
+            # pygame.NOFRAME makes the visualization window not have a Frame
             self.window = pygame.display.set_mode(image_size)#, pygame.NOFRAME)
 
         else:
@@ -384,8 +384,8 @@ class VisualisationModule:
         (car_image_width, car_image_height) = car_image.get_size()
 
         # pixel_per_meter_image = car_image_height/car_width_meters
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(car_width_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(car_width_meters, 0)
 
         desired_car_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -421,16 +421,14 @@ class VisualisationModule:
         It will load the truck image, that will be used
         for displaying the current vehicles.
         '''
-
-        box_width_meters = 32.*0.4
         box_length_meters = 32.*0.6
 
         box_image = pygame.image.load(self.base_path+'/resources/waterOffset.png')
 
         (box_image_width, box_image_height) = box_image.get_size()
 
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -449,16 +447,14 @@ class VisualisationModule:
         It will load the truck image, that will be used
         for displaying the current vehicles.
         '''
-
-        box_width_meters = 32.*0.3
         box_length_meters = 32.*0.4
 
         box_image = pygame.image.load(self.base_path+'/resources/waterOffset.png')
 
         (box_image_width, box_image_height) = box_image.get_size()
 
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -477,16 +473,14 @@ class VisualisationModule:
         It will load the truck image, that will be used
         for displaying the current vehicles.
         '''
-
-        box_width_meters = 32.*0.2
         box_length_meters = 32.*0.2
 
         flag_image = pygame.image.load(self.base_path+'/resources/finishFlag.png')
 
         (flag_image_width, flag_image_height) = flag_image.get_size()
 
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -505,7 +499,6 @@ class VisualisationModule:
         Defines the font properties to be used
         when writing the id of the vehicles
         '''
-
         font_size = 10
 
         self.ids_font = pygame.font.SysFont('monospace', font_size)
@@ -519,7 +512,7 @@ class VisualisationModule:
     def dumb_background_blit(self):
         '''
         Blits the background picture into the 
-        visualisation window.
+        visualization window.
         It is named dumb since it blits ALL of the 
         pixels of the background into the window, 
         even if this results in pixels not changing
@@ -731,7 +724,6 @@ class VisualisationModule:
 
         [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x, vehicle_y)
 
-        vehicle_size = vehicle_image.get_size()
         vehicle_rotated = pygame.transform.rotate(vehicle_image, vehicle_yaw)
         vehicle_size_rotated = vehicle_rotated.get_size()
         
@@ -767,8 +759,8 @@ class VisualisationModule:
         '''
         goal_radius_meters = 0.25*32.
         # pixel_per_meter_image = car_image_height/car_width_meters
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(goal_radius_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(goal_radius_meters, 0)
 
         [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x, vehicle_y)
 
@@ -826,23 +818,7 @@ class VisualisationModule:
         rads = math.atan2(-dy,dx)
         rads %= 2.0*math.pi
         return (math.sqrt(dy**2+dx**2),rads)
-
-    def draw_arrow(self,p1,p2):
-        (d,a) = self.get_da(p1,p2)
-        da = 0.4
-        dd = 10.0
-        a = a+math.pi
-        r1 = (p2[0]+dd*math.cos(-a+da),p2[1]+dd*math.sin(-a+da))
-        r2 = (p2[0]+dd*math.cos(-a-da),p2[1]+dd*math.sin(-a-da))
-        point_list = [p1,p2,r1,r2,p2]
-        rect = pygame.draw.polygon(self.window, (255,0,0), point_list,1)
-
-        surf = self.window.subsurface(rect)
-        m1 = min(p1[0],p2[0])
-        m2 = min(p1[1],p2[1])
-        self.add_surface_to_areas_to_blit(surf,(m1,m2))
-
-           
+         
 
     def add_surface_to_areas_to_blit(self, surface, surface_pos):
         '''
@@ -876,7 +852,7 @@ class VisualisationModule:
         self.draw_vehicles()
 
 
-        # Pygame functions to update the visualisation
+        # Pygame functions to update the visualization
         # window
         pygame.display.flip()
         pygame.event.pump()
@@ -886,7 +862,7 @@ class VisualisationModule:
     def convert_position_to_image_pixel(self, x_pos, y_pos):
         '''
         Given a position in real world meters, it will return
-        the equivalent pixel in the visualisation window image.
+        the equivalent pixel in the visualization window image.
         '''
 
         x_pixel = self.image_center_x + x_pos*self.image_pixel_per_meter
