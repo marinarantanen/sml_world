@@ -384,8 +384,8 @@ class Visualization:
         (car_image_width, car_image_height) = car_image.get_size()
 
         # pixel_per_meter_image = car_image_height/car_width_meters
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(car_width_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(car_width_meters, 0)
 
         desired_car_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -421,16 +421,14 @@ class Visualization:
         It will load the truck image, that will be used
         for displaying the current vehicles.
         '''
-
-        box_width_meters = 32.*0.4
         box_length_meters = 32.*0.6
 
         box_image = pygame.image.load(self.base_path+'/resources/waterOffset.png')
 
         (box_image_width, box_image_height) = box_image.get_size()
 
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -449,16 +447,14 @@ class Visualization:
         It will load the truck image, that will be used
         for displaying the current vehicles.
         '''
-
-        box_width_meters = 32.*0.3
         box_length_meters = 32.*0.4
 
         box_image = pygame.image.load(self.base_path+'/resources/waterOffset.png')
 
         (box_image_width, box_image_height) = box_image.get_size()
 
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -477,16 +473,14 @@ class Visualization:
         It will load the truck image, that will be used
         for displaying the current vehicles.
         '''
-
-        box_width_meters = 32.*0.2
         box_length_meters = 32.*0.2
 
         flag_image = pygame.image.load(self.base_path+'/resources/finishFlag.png')
 
         (flag_image_width, flag_image_height) = flag_image.get_size()
 
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
@@ -505,7 +499,6 @@ class Visualization:
         Defines the font properties to be used
         when writing the id of the vehicles
         '''
-
         font_size = 10
 
         self.ids_font = pygame.font.SysFont('monospace', font_size)
@@ -731,7 +724,6 @@ class Visualization:
 
         [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x, vehicle_y)
 
-        vehicle_size = vehicle_image.get_size()
         vehicle_rotated = pygame.transform.rotate(vehicle_image, vehicle_yaw)
         vehicle_size_rotated = vehicle_rotated.get_size()
         
@@ -767,8 +759,8 @@ class Visualization:
         '''
         goal_radius_meters = 0.25*32.
         # pixel_per_meter_image = car_image_height/car_width_meters
-        [x_pixel_1, y_pixel_1] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, y_pixel_2] = self.convert_position_to_image_pixel(goal_radius_meters, 0)
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(goal_radius_meters, 0)
 
         [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x, vehicle_y)
 
@@ -826,23 +818,7 @@ class Visualization:
         rads = math.atan2(-dy,dx)
         rads %= 2.0*math.pi
         return (math.sqrt(dy**2+dx**2),rads)
-
-    def draw_arrow(self,p1,p2):
-        (d,a) = self.get_da(p1,p2)
-        da = 0.4
-        dd = 10.0
-        a = a+math.pi
-        r1 = (p2[0]+dd*math.cos(-a+da),p2[1]+dd*math.sin(-a+da))
-        r2 = (p2[0]+dd*math.cos(-a-da),p2[1]+dd*math.sin(-a-da))
-        point_list = [p1,p2,r1,r2,p2]
-        rect = pygame.draw.polygon(self.window, (255,0,0), point_list,1)
-
-        surf = self.window.subsurface(rect)
-        m1 = min(p1[0],p2[0])
-        m2 = min(p1[1],p2[1])
-        self.add_surface_to_areas_to_blit(surf,(m1,m2))
-
-           
+         
 
     def add_surface_to_areas_to_blit(self, surface, surface_pos):
         '''
