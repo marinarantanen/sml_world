@@ -14,9 +14,9 @@ import math
 from sml_modules import bodyclasses
 from vehicle_models import DummyVehicle
 
-class VisualisationModule:
+class Visualization:
     '''
-    VisualisationModule is a class to visually display
+    Visualization is a class to visually display
     the current state of the SML World.
     It is necessary that the thread running this class is the main 
     program thread, otherwise Pygame will not work correctly.
@@ -39,7 +39,7 @@ class VisualisationModule:
         # serve as background
         self.base_path = base_path
         map_filename = base_path+file_path
-        # Determines if the visualisation is meant to 
+        # Determines if the visualization is meant to 
         # be used for the ground projector at the
         # SML
         self.ground_projection = ground_projection
@@ -47,7 +47,7 @@ class VisualisationModule:
         # As measured by Rui [LEFT, RIGHT, DOWN, UP]
         self.projector_area = [3.360, 4.490, 2.920, 2.970]
 
-        # The refresh rate of the visualisation screen
+        # The refresh rate of the visualization screen
         self.refresh_rate = float(20)
 
         self.bg_surface = None
@@ -89,12 +89,12 @@ class VisualisationModule:
 
         Returns:
         A boolean indicating if the user closed the
-        visualisation window (True) or not (False)
+        visualization window (True) or not (False)
         '''
 
-        # Receive the lastest vehicle states information
+        # Receive the latest vehicle states information
         self.vehicles_dict = world_state
-        # Draw the the lastest vehicle states
+        # Draw the the latest vehicle states
         self.display_image()
 
         for event in pygame.event.get():
@@ -285,7 +285,7 @@ class VisualisationModule:
             y = 0
             os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
             
-            # pygame.NOFRAME makes the visualisation window not have a Frame
+            # pygame.NOFRAME makes the visualization window not have a Frame
             self.window = pygame.display.set_mode(image_size)#, pygame.NOFRAME)
 
         else:
@@ -519,7 +519,7 @@ class VisualisationModule:
     def dumb_background_blit(self):
         '''
         Blits the background picture into the 
-        visualisation window.
+        visualization window.
         It is named dumb since it blits ALL of the 
         pixels of the background into the window, 
         even if this results in pixels not changing
@@ -876,7 +876,7 @@ class VisualisationModule:
         self.draw_vehicles()
 
 
-        # Pygame functions to update the visualisation
+        # Pygame functions to update the visualization
         # window
         pygame.display.flip()
         pygame.event.pump()
@@ -886,7 +886,7 @@ class VisualisationModule:
     def convert_position_to_image_pixel(self, x_pos, y_pos):
         '''
         Given a position in real world meters, it will return
-        the equivalent pixel in the visualisation window image.
+        the equivalent pixel in the visualization window image.
         '''
 
         x_pixel = self.image_center_x + x_pos*self.image_pixel_per_meter
