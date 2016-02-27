@@ -19,6 +19,14 @@ from sml_modules.visualization_module import VisualisationModule
 from sml_modules.road_module import RoadModule
 
 def update_state(data, vis_module):
+    """
+    Callback function for the topic 'world_state' is called every time a new
+    message is published.
+    
+    @param data: I{String} Json string that represents the world state.
+    @param vis_module: I{VisualisationModule} The initialized visualization
+                       module used to show the current state of the simulation.
+    """
     #print json.loads(data.data)
     world_state = {}
     ws = json.loads(data.data)
@@ -27,6 +35,13 @@ def update_state(data, vis_module):
     vis_module.loop_iteration(world_state)
     
 def visualizer(vis_module):
+    """
+    Function to initialize the new ROS-node 'visualizer' and start the
+    subscriber for the topic 'world_state'.
+    
+    @param vis_module: I{VisualisationModule} The initialized visualization
+                       module used to show the current state of the simulation.
+    """
     rospy.init_node('visualizer', anonymous=True)
     rospy.Subscriber('world_state', String, update_state, vis_module)
     rospy.spin()
