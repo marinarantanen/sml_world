@@ -14,32 +14,40 @@ import math
 from sml_modules import bodyclasses
 from vehicle_models import DummyVehicle
 
+
 class Visualization:
-    '''
-    Visualization is a class to visually display
-    the current state of the SML World.
-    It is necessary that the thread running this class is the main 
+    """
+    Class to diplay the current state of the SML World.
+
+    Visualization is a class to visually display the current state of the
+    SML World.  It is necessary that the thread running this class is the main
     program thread, otherwise Pygame will not work correctly.
     Due to that reason this class can be lauched from two ways:
 
     1) Using Process from multiprocessing library;
-    2) By an individual secondary script that is simply
-    giving this class the main thread of processing.
-    '''
+    2) By an individual secondary script that is simply giving this class the
+       main thread of processing.
+    """
 
-    def __init__(self, base_path, file_path, window_width, window_height, pixel_per_meter = -1, ground_projection = False):
+    def __init__(self, base_path, file_path, window_width, window_height,
+                 pixel_per_meter=-1, ground_projection=False):
+        """
+        Inizialize the class Visualization.
 
+        @param base_path:
+        @param file_path:
+        """
         # The desired dimensions and pixel resolution
         # for the window to be shown
         self.desired_window_width = float(window_width)
         self.desired_window_height = float(window_height)
         self.desired_pixel_per_meter = float(pixel_per_meter)
 
-        # The filename which defines the map/image to 
+        # The filename which defines the map/image to
         # serve as background
         self.base_path = base_path
-        map_filename = base_path+file_path
-        # Determines if the visualization is meant to 
+        map_filename = base_path + file_path
+        # Determines if the visualization is meant to
         # be used for the ground projector at the
         # SML
         self.ground_projection = ground_projection
@@ -74,24 +82,22 @@ class Visualization:
 
         self.show_ids = True
         
-    
     def loop_iteration(self, world_state):
-        '''
-        The main loop iteration of the class.
-        It will try to run a fixed rate, as defined 
-        by self.refresh_rate. If it does not manage to 
-        keep this time it will issue terminal warnings
-        to the user.
-        The loop consists in:
-        1) Receive the latest vehicle states information
-        through UDP
-        2) Draw said states
+        """
+        Draw the received world state.
 
+        The main loop iteration of the class.  It will try to run a fixed rate,
+        as defined by self.refresh_rate.  If it does not manage to keep this
+        time it will issue terminal warnings to the user.
+        The loop consists in:
+            1) Receive the latest vehicle states information
+               through UDP
+            2) Draw said states
+        
         Returns:
         A boolean indicating if the user closed the
         visualization window (True) or not (False)
-        '''
-
+        """
         # Receive the latest vehicle states information
         self.vehicles_dict = world_state
         # Draw the the latest vehicle states
@@ -105,16 +111,15 @@ class Visualization:
                 pygame.quit()
                 return True
             
-
     def load_image_meta_data(self, map_filename):
-        '''
-        Given the map_filename, it will find the
-        corresponding image metadata of said map file.
-        The file is parsed, and the image metadata 
-        (image_width, image_height, pixel_per_meter)
-        is gathered and stored in the class.
-        '''
+        """
+        Load the meta data corresponding to map_filename.
 
+        Given the map_filename, it will find the corresponding image metadata
+        of said map file.  The file is parsed, and the image metadata
+        (image_width, image_height, pixel_per_meter) is gathered and stored
+        in the class.
+        """
         # Opening the file, reading it into a string
         # and closing it.
         meta_data_filename = map_filename + '.meta'
@@ -153,7 +158,7 @@ class Visualization:
                 continue
 
         self.original_image_width = self.loaded_image_width
-        self.original_image_height = self.loaded_image_height 
+        self.original_image_height = self.loaded_image_height
         self.original_image_pixel_per_meter = self.loaded_image_pixel_per_meter
 
         self.image_width = self.loaded_image_width
@@ -163,25 +168,24 @@ class Visualization:
         # this is, the point where x and y are 0 in
         # real world meters corresponds to the center
         # of the image
-        self.image_center_x = self.loaded_image_width/2.
-        self.image_center_y = self.loaded_image_height/2.
+        self.image_center_x = self.loaded_image_width / 2.
+        self.image_center_y = self.loaded_image_height / 2.
 
         self.image_pixel_per_meter = self.loaded_image_pixel_per_meter
 
         return
 
     def load_image(self, map_filename):
-        '''
-        Given the map_filename, it will find the
-        corresponding image of said map file.
-        Depending on the desired window width/height 
-        and pixel_per_meter it will resize and crop the image.
-        If in ground_projection mode, it will also apply
-        the necessary transformations so that the image can
-        be correctly projected on the ground
-        '''
+        """
+        Load the image corresponding to map_filename.
 
-
+        Given the map_filename, it will find the corresponding image of said
+        map file.  Depending on the desired window width/height and
+        pixel_per_meter it will resize and crop the image. If in
+        ground_projection mode, it will also apply the necessary
+        transformations so that the image can be correctly projected on the
+        ground.
+        """
         pygame.init()
 
         image_filename = map_filename + '.bmp'
@@ -189,22 +193,32 @@ class Visualization:
 
         # Just a sanity check
         (loaded_image_width, loaded_image_height) = self.bg_surface.get_size()
-        if loaded_image_width != self.loaded_image_width or loaded_image_height != self.loaded_image_height:
+        if (loaded_image_width != self.loaded_image_width or
+            loaded_image_height != self.loaded_image_height):
 
             raise NameError("Meta data does not comply with the loaded image!")
-
 
         if self.ground_projection:
             # Need to crop the original image to the Projector dimensions
 
             if self.desired_pixel_per_meter != -1:
-                print "WARNING: Ground Projection will ignore the provided pixel_per_meter parameter"
+                print ("WARNING: Ground Projection will ignore the provided" +
+                       "pixel_per_meter parameter")
 
-            # NOTE: This bugged my mind a lot, the 2.92 and 2.97 should be switched
-            top_left_x = (self.loaded_image_width/2.) - self.projector_area[0]*32.*self.loaded_image_pixel_per_meter
-            top_left_y = (self.loaded_image_height/2.) - self.projector_area[2]*32.*self.loaded_image_pixel_per_meter
-            bot_right_x = (self.loaded_image_width/2.) + self.projector_area[1]*32.*self.loaded_image_pixel_per_meter
-            bot_right_y = (self.loaded_image_height/2.) + self.projector_area[3]*32.*self.loaded_image_pixel_per_meter
+            # NOTE: This bugged my mind a lot, the 2.92 and 2.97
+            # should be switched
+            top_left_x = ((self.loaded_image_width / 2.) -
+                          self.projector_area[0] * 32. *
+                          self.loaded_image_pixel_per_meter)
+            top_left_y = ((self.loaded_image_height / 2.) -
+                          self.projector_area[2] * 32. *
+                          self.loaded_image_pixel_per_meter)
+            bot_right_x = ((self.loaded_image_width / 2.) +
+                           self.projector_area[1] * 32. *
+                           self.loaded_image_pixel_per_meter)
+            bot_right_y = ((self.loaded_image_height / 2.) +
+                           self.projector_area[3] * 32. *
+                           self.loaded_image_pixel_per_meter)
 
             top_left_x = int(round(top_left_x))
             top_left_y = int(round(top_left_y))
@@ -212,45 +226,77 @@ class Visualization:
             bot_right_y = int(round(bot_right_y))
 
             background_array = pygame.PixelArray(self.bg_surface)
-            cropped_image_array = background_array[top_left_x:bot_right_x, top_left_y:bot_right_y]
+            cropped_image_array = background_array[top_left_x:bot_right_x,
+                                                   top_left_y:bot_right_y]
 
             self.bg_surface = cropped_image_array.make_surface()
-            self.bg_surface = pygame.transform.smoothscale(self.bg_surface, (int(self.desired_window_width), int(self.desired_window_height)))
+            self.bg_surface = pygame.transform.smoothscale(
+                                self.bg_surface,
+                                (int(self.desired_window_width),
+                                 int(self.desired_window_height)))
 
-            self.image_pixel_per_meter = self.desired_window_width/((self.projector_area[0]+self.projector_area[1])*32.)
-            self.image_pixel_per_meter = self.desired_window_height/((self.projector_area[3]+self.projector_area[2])*32.)
+            self.image_pixel_per_meter = (self.desired_window_width /
+                                          (self.projector_area[0] +
+                                           self.projector_area[1]) * 32.)
+            self.image_pixel_per_meter = (self.desired_window_height /
+                                          (self.projector_area[3] +
+                                           self.projector_area[2]) * 32.)
 
-            self.image_center_x = self.desired_window_width*(self.projector_area[0]/(self.projector_area[0]+self.projector_area[1]))
-            self.image_center_y = self.desired_window_height*(self.projector_area[2]/(self.projector_area[2]+self.projector_area[3]))
+            self.image_center_x = (self.desired_window_width *
+                                   self.projector_area[0] /
+                                   (self.projector_area[0] +
+                                    self.projector_area[1]))
+            self.image_center_y = (self.desired_window_height *
+                                   self.projector_area[2] /
+                                   (self.projector_area[2] +
+                                    self.projector_area[3]))
 
         elif self.desired_pixel_per_meter == -1:
             # CURENTLY BUGGED
-            # Only need to rescale the image in order to comply with the desired dimensions
-            self.bg_surface = pygame.transform.smoothscale(self.bg_surface, (int(self.desired_window_width), int(self.desired_window_height)))
+            # Only need to rescale the image in order to comply with the
+            # desired dimensions
+            self.bg_surface = pygame.transform.smoothscale(
+                                self.bg_surface,
+                                (int(self.desired_window_width),
+                                 int(self.desired_window_height)))
             self.bg_surface_array = pygame.surfarray.array3d(self.bg_surface)
 
-            x_scale_ratio = float(self.desired_window_width)/float(self.loaded_image_width)
-            y_scale_ratio = float(self.desired_window_height)/float(self.loaded_image_height)
+            x_scale_ratio = (float(self.desired_window_width) /
+                             float(self.loaded_image_width))
+            y_scale_ratio = (float(self.desired_window_height) /
+                             float(self.loaded_image_height))
 
-            self.image_pixel_per_meter = self.loaded_image_pixel_per_meter*x_scale_ratio
-            # self.image_pixel_per_meter = self.loaded_image_pixel_per_meter*y_scale_ratio
+            self.image_pixel_per_meter = (self.loaded_image_pixel_per_meter *
+                                          x_scale_ratio)
+            # self.image_pixel_per_meter = (self.loaded_image_pixel_per_meter *
+            #                               y_scale_ratio)
 
-            self.image_center_x = (self.loaded_image_width/2.)*x_scale_ratio
-            self.image_center_y = (self.loaded_image_height/2.)*y_scale_ratio
+            self.image_center_x = self.loaded_image_width / 2. * x_scale_ratio
+            self.image_center_y = self.loaded_image_height / 2. * y_scale_ratio
 
         else:
-            # Need to rescale the image in order to comply with the desired dimensions
-            # and pixel_per_meter
+            # Need to rescale the image in order to comply with the desired
+            # dimensionsand pixel_per_meter
 
             # CURENTLY BUGGED
 
-            half_width_meters = (self.desired_window_width/2.)/self.desired_pixel_per_meter
-            half_height_meters = (self.desired_window_height/2.)/self.desired_pixel_per_meter
+            half_width_meters = (self.desired_window_width / 2. /
+                                 self.desired_pixel_per_meter)
+            half_height_meters = (self.desired_window_height / 2. /
+                                  self.desired_pixel_per_meter)
 
-            top_left_x = (self.loaded_image_width/2.) - half_width_meters*self.loaded_image_pixel_per_meter
-            top_left_y = (self.loaded_image_height/2.) - half_height_meters*self.loaded_image_pixel_per_meter
-            bot_right_x = (self.loaded_image_width/2.) + half_width_meters*self.loaded_image_pixel_per_meter
-            bot_right_y = (self.loaded_image_height/2.) + half_height_meters*self.loaded_image_pixel_per_meter
+            top_left_x = ((self.loaded_image_width / 2.) -
+                          half_width_meters *
+                          self.loaded_image_pixel_per_meter)
+            top_left_y = ((self.loaded_image_height / 2.) -
+                          half_height_meters *
+                          self.loaded_image_pixel_per_meter)
+            bot_right_x = ((self.loaded_image_width / 2.) +
+                           half_width_meters *
+                           self.loaded_image_pixel_per_meter)
+            bot_right_y = ((self.loaded_image_height / 2.) +
+                           half_height_meters *
+                           self.loaded_image_pixel_per_meter)
 
             top_left_x = int(round(top_left_x))
             top_left_y = int(round(top_left_y))
@@ -258,35 +304,41 @@ class Visualization:
             bot_right_y = int(round(bot_right_y))
 
             background_array = pygame.PixelArray(self.bg_surface)
-            cropped_image_array = background_array[top_left_x:bot_right_x, top_left_y:bot_right_y]
+            cropped_image_array = background_array[top_left_x:bot_right_x,
+                                                   top_left_y:bot_right_y]
 
             self.bg_surface = cropped_image_array.make_surface()
 
-            self.bg_surface = pygame.transform.smoothscale(self.bg_surface, ( int(self.desired_window_width), int(self.desired_window_height) ))
+            self.bg_surface = pygame.transform.smoothscale(
+                                self.bg_surface,
+                                (int(self.desired_window_width),
+                                 int(self.desired_window_height)))
             self.bg_surface_array = pygame.surfarray.array3d(self.bg_surface)
 
             self.image_pixel_per_meter = self.desired_pixel_per_meter
             self.image_pixel_per_meter = self.desired_pixel_per_meter
 
-            self.image_center_x = (self.desired_window_width/2.)
-            self.image_center_y = (self.desired_window_height/2.)
+            self.image_center_x = (self.desired_window_width / 2.)
+            self.image_center_y = (self.desired_window_height / 2.)
 
-        #self.bg_surface_pixel_array = pygame.PixelArray(self.bg_surface)
+        # self.bg_surface_pixel_array = pygame.PixelArray(self.bg_surface)
 
+        self.areas_to_blit.append([0, 0, int(self.desired_window_width),
+                                   int(self.desired_window_height)])
 
-        self.areas_to_blit.append([0, 0, int(self.desired_window_width), int(self.desired_window_height)])
-
-        image_size = (int(self.desired_window_width), int(self.desired_window_height))
+        image_size = (int(self.desired_window_width),
+                      int(self.desired_window_height))
 
         if self.ground_projection:
 
-            # This sets up the window position on the top left corner of the screen
+            # This sets up the window position on the top left corner of the
+            # screen
             x = 0
             y = 0
-            os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
+            os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
             
             # pygame.NOFRAME makes the visualization window not have a Frame
-            self.window = pygame.display.set_mode(image_size)#, pygame.NOFRAME)
+            self.window = pygame.display.set_mode(image_size, pygame.NOFRAME)
 
         else:
 
@@ -295,229 +347,212 @@ class Visualization:
         return
 
     def load_smart_car_image(self):
-        '''
-        It will load the car image, that will be used
-        for displaying the current vehicles.
-        '''
-
+        """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
-        car_length_meters = (4.779-0.910)*2.
+        car_length_meters = (4.779 - 0.910) * 2.
 
-        self.smart_car_image = self.get_car_image(self.base_path+'/resources/carSmartOffset.png', car_width_meters, car_length_meters)
+        self.smart_car_image = self.get_car_image(
+                        self.base_path + '/resources/carSmartOffset.png',
+                        car_width_meters, car_length_meters)
 
         return
 
     def load_red_car_image(self):
-        '''
-        It will load the car image, that will be used
-        for displaying the current vehicles.
-        '''
-
+        """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
-        car_length_meters = (4.779-0.910)*2.
+        car_length_meters = (4.779 - 0.910) * 2.
 
-        self.red_car_image = self.get_car_image(self.base_path+'/resources/carRedOffset.png', car_width_meters, car_length_meters)
+        self.red_car_image = self.get_car_image(
+                    self.base_path + '/resources/carRedOffset.png',
+                    car_width_meters, car_length_meters)
 
         return
 
     def load_green_car_image(self):
-        '''
-        It will load the car image, that will be used
-        for displaying the current vehicles.
-        '''
-
+        """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
-        car_length_meters = (4.779-0.910)*2.
+        car_length_meters = (4.779 - 0.910) * 2.
 
-        self.green_car_image = self.get_car_image(self.base_path+'/resources/carGreenOffset.png', car_width_meters, car_length_meters)
+        self.green_car_image = self.get_car_image(
+                            self.base_path + '/resources/carGreenOffset.png',
+                            car_width_meters, car_length_meters)
 
         return
 
     def load_blue_car_image(self):
-        '''
-        It will load the car image, that will be used
-        for displaying the current vehicles.
-        '''
-
+        """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
-        car_length_meters = (4.779-0.910)*2.
+        car_length_meters = (4.779 - 0.910) * 2.
 
-        self.blue_car_image = self.get_car_image(self.base_path+'/resources/carBlueOffset.png', car_width_meters, car_length_meters)
+        self.blue_car_image = self.get_car_image(
+                        self.base_path + '/resources/carBlueOffset.png',
+                        car_width_meters, car_length_meters)
 
         return
 
     def load_white_car_image(self):
-        '''
-        It will load the car image, that will be used
-        for displaying the current vehicles.
-        '''
-
+        """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
-        car_length_meters = (4.779-0.910)*2.
+        car_length_meters = (4.779 - 0.910) * 2.
         
-        self.white_car_image = self.get_car_image(self.base_path+'/resources/carWhiteOffset.png', car_width_meters, car_length_meters)
+        self.white_car_image = self.get_car_image(
+                        self.base_path + '/resources/carWhiteOffset.png',
+                        car_width_meters, car_length_meters)
 
         return
 
     def load_yellow_car_image(self):
-        '''
-        It will load the car image, that will be used
-        for displaying the current vehicles.
-        '''        
-        
+        """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
-        car_length_meters = (4.779-0.910)*2.
+        car_length_meters = (4.779 - 0.910) * 2.
 
-        self.yellow_car_image = self.get_car_image(self.base_path+'/resources/carYellowOffset.png', car_width_meters, car_length_meters)
+        self.yellow_car_image = self.get_car_image(
+                        self.base_path + '/resources/carYellowOffset.png',
+                        car_width_meters, car_length_meters)
 
         return
 
-    def get_car_image(self, car_image_filename, car_width_meters, car_length_meters):
-        '''
-        It will load the car image stored in file 
-        car_image_filename, that will be used
-        for displaying the current vehicle.
-        '''
-
+    def get_car_image(self, car_image_filename, car_width_meters,
+                      car_length_meters):
+        """Load the car image stored in the file car_image_cilename."""
         car_image = pygame.image.load(car_image_filename)
 
         (car_image_width, car_image_height) = car_image.get_size()
 
         # pixel_per_meter_image = car_image_height/car_width_meters
         [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, _] = self.convert_position_to_image_pixel(car_width_meters, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(car_width_meters,
+                                                              0)
 
         desired_car_width_pixels = float(x_pixel_2 - x_pixel_1)
 
-        scale_down_ratio = desired_car_width_pixels/car_image_height
+        scale_down_ratio = desired_car_width_pixels / car_image_height
 
-        new_size = (int(round(scale_down_ratio*car_image_width)), int(round(scale_down_ratio*car_image_height)))
+        new_size = (int(round(scale_down_ratio * car_image_width)),
+                    int(round(scale_down_ratio * car_image_height)))
 
-        car_image = pygame.transform.smoothscale(car_image,new_size)
+        car_image = pygame.transform.smoothscale(car_image, new_size)
 
         return car_image
 
     def load_truck_image(self):
-        '''
-        It will load the truck image, that will be used
-        for displaying the current vehicles.
-        '''
-
+        """Load the truck image, used for displaying the current vehicles."""
         minitruck_width_meters = 0.08
         # minitruck_length_meters = 0.19
-        minitruck_length_meters = 0.145*2
+        minitruck_length_meters = 0.145 * 2
         # This is the SML world meters
         # of the minitruck image width
 
-        truck_width_meters = 32.*minitruck_width_meters
-        truck_length_meters = 32.*minitruck_length_meters
+        truck_width_meters = 32. * minitruck_width_meters
+        truck_length_meters = 32. * minitruck_length_meters
 
-        self.truck_image = self.get_car_image(self.base_path+'/resources/truckTopOffset.png', truck_width_meters, truck_length_meters)
+        self.truck_image = self.get_car_image(
+                    self.base_path + '/resources/truckTopOffset.png',
+                    truck_width_meters, truck_length_meters)
 
         return
 
     def load_big_box_image(self):
-        '''
-        It will load the truck image, that will be used
-        for displaying the current vehicles.
-        '''
-        box_length_meters = 32.*0.6
+        """Load the truck image, used for displaying the current vehicles."""
+        box_length_meters = 32. * 0.6
 
-        box_image = pygame.image.load(self.base_path+'/resources/waterOffset.png')
+        box_image = pygame.image.load(
+                        self.base_path + '/resources/waterOffset.png')
 
         (box_image_width, box_image_height) = box_image.get_size()
 
         [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(
+                                box_length_meters,
+                                0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
-        scale_down_ratio = desired_box_width_pixels/(box_image_width/2.)
+        scale_down_ratio = desired_box_width_pixels / (box_image_width / 2.)
 
-        new_size = (int(round(scale_down_ratio*box_image_width)), int(round(scale_down_ratio*box_image_height)))
+        new_size = (int(round(scale_down_ratio * box_image_width)),
+                    int(round(scale_down_ratio * box_image_height)))
 
-        box = pygame.transform.smoothscale(box_image,new_size)
+        box = pygame.transform.smoothscale(box_image, new_size)
 
         self.box_image = box
 
         return
 
     def load_small_box_image(self):
-        '''
-        It will load the truck image, that will be used
-        for displaying the current vehicles.
-        '''
-        box_length_meters = 32.*0.4
+        """Load the truck image, used for displaying the current vehicles."""
+        box_length_meters = 32. * 0.4
 
-        box_image = pygame.image.load(self.base_path+'/resources/waterOffset.png')
+        box_image = pygame.image.load(
+                        self.base_path + '/resources/waterOffset.png')
 
         (box_image_width, box_image_height) = box_image.get_size()
 
         [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(
+                                box_length_meters,
+                                0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
-        scale_down_ratio = desired_box_width_pixels/(box_image_width/2.)
+        scale_down_ratio = desired_box_width_pixels / (box_image_width / 2.)
 
-        new_size = (int(round(scale_down_ratio*box_image_width)), int(round(scale_down_ratio*box_image_height)))
+        new_size = (int(round(scale_down_ratio * box_image_width)),
+                    int(round(scale_down_ratio * box_image_height)))
 
-        box = pygame.transform.smoothscale(box_image,new_size)
+        box = pygame.transform.smoothscale(box_image, new_size)
 
         self.small_box_image = box
 
         return
 
     def load_goal_image(self):
-        '''
-        It will load the truck image, that will be used
-        for displaying the current vehicles.
-        '''
-        box_length_meters = 32.*0.2
+        """Load the truck image, used for displaying the current vehicles."""
+        box_length_meters = 32. * 0.2
 
-        flag_image = pygame.image.load(self.base_path+'/resources/finishFlag.png')
+        flag_image = pygame.image.load(
+                        self.base_path + '/resources/finishFlag.png')
 
         (flag_image_width, flag_image_height) = flag_image.get_size()
 
         [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, _] = self.convert_position_to_image_pixel(box_length_meters, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(
+                                box_length_meters,
+                                0)
 
         desired_box_width_pixels = float(x_pixel_2 - x_pixel_1)
 
-        scale_down_ratio = desired_box_width_pixels/(flag_image_width/2.)
+        scale_down_ratio = desired_box_width_pixels / (flag_image_width / 2.)
 
-        new_size = (int(round(scale_down_ratio*flag_image_width)), int(round(scale_down_ratio*flag_image_height)))
+        new_size = (int(round(scale_down_ratio * flag_image_width)),
+                    int(round(scale_down_ratio * flag_image_height)))
 
-        flag = pygame.transform.smoothscale(flag_image,new_size)
+        flag = pygame.transform.smoothscale(flag_image, new_size)
 
         self.goal_image = flag
 
         return
 
     def setup_id_font(self):
-        '''
-        Defines the font properties to be used
-        when writing the id of the vehicles
-        '''
+        """Define the font properties used for writing the vehicle ids."""
         font_size = 10
 
         self.ids_font = pygame.font.SysFont('monospace', font_size)
 
         self.ids_font.set_bold(True)
 
-        self.font_color = (255, 255, 0) 
+        self.font_color = (255, 255, 0)
 
         return
 
     def dumb_background_blit(self):
-        '''
-        Blits the background picture into the 
-        visualization window.
-        It is named dumb since it blits ALL of the 
-        pixels of the background into the window, 
-        even if this results in pixels not changing
-        their value
-        '''
+        """
+        Blit the whole background image into the visualization window.
+
+        Blits the background picture into the visualization window.  It is
+        named dumb since it blits ALL of the pixels of the background into the
+        window, even if this results in pixels not changing their value.
+        """
         # self.window.blit(self.bg_surface, (0,0))
         # Average time: 0.033915
 
@@ -525,16 +560,15 @@ class Visualization:
         # Average time: 0.022714
 
     def smart_background_blit(self):
-        '''
-        Blits the background picture into the 
-        visualization window.
-        It is named smart since it blits only 
-        interest regions as defined by 
-        self.areas_to_blit. These areas are areas
-        that we consider that need to be blitted,
-        because they were previously drawn with things
-        that are not the background (e.g.: a vehicle)
-        '''
+        """
+        Blit the background image only into areas of interest.
+
+        Blits the background picture into the visualization window.  It is
+        named smart since it blits only interest regions as defined by
+        self.areas_to_blit.  These areas are areas that we consider that need
+        to be blitted, because they were previously drawn with things that are
+        not the background (e.g.: a vehicle)
+        """
         for area_to_blit in self.areas_to_blit:
             self.window.blit(self.bg_surface, area_to_blit[:2], area_to_blit)
         # Empty the areas to blit
@@ -543,48 +577,49 @@ class Visualization:
         return
 
     def draw_vehicles(self):
-        '''
-        Will iterate over the vehicles in 
-        self.vehicles_dict and draw them
-        '''
-
+        """Iterate over the vehicles in self.vehicles_dict and draw them."""
         for vehicle_id in self.vehicles_dict:
 
             vehicle = self.vehicles_dict[vehicle_id]
 
             vehicle_class_name = vehicle['class_name']
             
-            if vehicle_class_name == bodyclasses.QualisysGoal.__name__:  # @UndefinedVariable
+            if vehicle_class_name == bodyclasses.QualisysGoal.__name__:
                 self.draw_goal(vehicle['x'], vehicle['y'])
 
-            elif vehicle_class_name == bodyclasses.QualisysBigBox.__name__:  # @UndefinedVariable
+            elif vehicle_class_name == bodyclasses.QualisysBigBox.__name__:
                 self.draw_box(vehicle['x'], vehicle['y'], vehicle['yaw'])
 
-            elif vehicle_class_name == bodyclasses.QualisysSmallBox.__name__:  # @UndefinedVariable
+            elif vehicle_class_name == bodyclasses.QualisysSmallBox.__name__:
                 self.draw_small_box(vehicle['x'], vehicle['y'], vehicle['yaw'])
 
-            elif vehicle_class_name == DummyVehicle.__name__:  # @UndefinedVariable
+            elif vehicle_class_name == DummyVehicle.__name__:
                 if vehicle_id > -100:
-                    color = vehicle_id%5
+                    color = vehicle_id % 5
 
                     if color == 0:
-                        self.draw_white_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
+                        self.draw_white_car(vehicle['x'], vehicle['y'],
+                                            vehicle['yaw'])
 
                     elif color == 1:
-                        self.draw_green_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
+                        self.draw_green_car(vehicle['x'], vehicle['y'],
+                                            vehicle['yaw'])
 
                     elif color == 2:
-                        self.draw_blue_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
+                        self.draw_blue_car(vehicle['x'], vehicle['y'],
+                                           vehicle['yaw'])
 
                     elif color == 3:
-                        self.draw_yellow_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
+                        self.draw_yellow_car(vehicle['x'], vehicle['y'],
+                                             vehicle['yaw'])
 
                     elif color == 4:
-                        self.draw_red_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
+                        self.draw_red_car(vehicle['x'], vehicle['y'],
+                                          vehicle['yaw'])
 
-            #elif vehicle_class_name == smartvehicle.SmartVehicle.__name__:
+            # elif vehicle_class_name == smartvehicle.SmartVehicle.__name__:
 
-            #    self.draw_smart_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
+            # self.draw_smart_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
 
             else:
 
@@ -601,135 +636,128 @@ class Visualization:
 
             # Debug purposes
             # circle_radius = int(round(0.5*self.image_pixel_per_meter))
-            # pygame.draw.circle(self.window, (0,255,0), (pixel_x,pixel_y), circle_radius, 0)
-            # self.areas_to_blit.append([pixel_x-circle_radius*10, pixel_y-circle_radius*2, pixel_x+circle_radius*10, pixel_y+circle_radius*10])
+            # pygame.draw.circle(self.window, (0,255,0), (pixel_x,pixel_y),
+            #                    circle_radius, 0)
+            # self.areas_to_blit.append([pixel_x - circle_radius * 10,
+            #                            pixel_y - circle_radius * 2,
+            #                            pixel_x + circle_radius * 10,
+            #                            pixel_y + circle_radius * 10])
 
         return
 
     def draw_car(self, car_x, car_y, car_yaw):
-        '''
-        It will draw a car, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the car image as an argument
-        '''
+        """
+        Draw a car, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the car image as an
+        argument.
+        """
         self.draw_vehicle_image(car_x, car_y, car_yaw, self.car_image)
-       
         return
 
     def draw_red_car(self, car_x, car_y, car_yaw):
-        '''
-        It will draw a car, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the car image as an argument
-        '''
+        """
+        Draw a car, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the car image as an
+        argument.
+        """
         self.draw_vehicle_image(car_x, car_y, car_yaw, self.red_car_image)
-       
         return
 
     def draw_yellow_car(self, car_x, car_y, car_yaw):
-        '''
-        It will draw a car, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the car image as an argument
-        '''
+        """
+        Draw a car, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the car image as an
+        argument.
+        """
         self.draw_vehicle_image(car_x, car_y, car_yaw, self.yellow_car_image)
-       
         return
 
     def draw_blue_car(self, car_x, car_y, car_yaw):
-        '''
-        It will draw a car, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the car image as an argument
-        '''
+        """
+        Draw a car, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the car image as an
+        argument.
+        """
         self.draw_vehicle_image(car_x, car_y, car_yaw, self.blue_car_image)
-       
         return
 
     def draw_green_car(self, car_x, car_y, car_yaw):
-        '''
-        It will draw a car, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the car image as an argument
-        '''
+        """
+        Draw a car, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the car image as an
+        argument.
+        """
         self.draw_vehicle_image(car_x, car_y, car_yaw, self.green_car_image)
-       
         return
 
     def draw_white_car(self, car_x, car_y, car_yaw):
-        '''
-        It will draw a car, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the car image as an argument
-        '''
+        """
+        Draw a car, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the car image as an
+        argument.
+        """
         self.draw_vehicle_image(car_x, car_y, car_yaw, self.white_car_image)
-       
         return
 
     def draw_smart_car(self, car_x, car_y, car_yaw):
-        '''
-        It will draw a smart car, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the car image as an argument
-        '''
+        """
+        Draw a smart car, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the car image as an
+        argument.
+        """
         self.draw_vehicle_image(car_x, car_y, car_yaw, self.smart_car_image)
-       
         return
 
     def draw_truck(self, truck_x, truck_y, truck_yaw):
-        '''
-        It will draw a truck, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the truck image as an argument
-        '''
-        
-        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.truck_image)
+        """
+        Draw a truck, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the truck image as an
+        argument.
+        """
+        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.truck_image)
         return
 
     def draw_box(self, truck_x, truck_y, truck_yaw):
-        '''
-        It will draw a truck, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the truck image as an argument
-        '''
-        
-        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.box_image)
+        """
+        Draw a box, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the box image as an
+        argument.
+        """
+        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.box_image)
         return
 
     def draw_small_box(self, truck_x, truck_y, truck_yaw):
-        '''
-        It will draw a truck, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the truck image as an argument
-        '''
-        
-        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.small_box_image)
+        """
+        Draw a small box, given its state: x, y and yaw.
 
+        It does so by calling draw_vehicle_image with the small box image as an
+        argument.
+        """
+        self.draw_vehicle_image(truck_x, truck_y, truck_yaw,
+                                self.small_box_image)
         return
 
-    def draw_vehicle_image(self, vehicle_x, vehicle_y, vehicle_yaw, vehicle_image):
-        '''
-        Draws a given image vehicle, with the position
-        and yaw given in the arguments
-        '''
-
-        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x, vehicle_y)
+    def draw_vehicle_image(self, vehicle_x, vehicle_y, vehicle_yaw,
+                           vehicle_image):
+        """Draw a given vehicle image, given its position and yaw."""
+        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x,
+                                                                  vehicle_y)
 
         vehicle_rotated = pygame.transform.rotate(vehicle_image, vehicle_yaw)
         vehicle_size_rotated = vehicle_rotated.get_size()
         
-        new_x = pixel_x - vehicle_size_rotated[0]/2 
-        new_y = pixel_y - vehicle_size_rotated[1]/2 
-        pos = (int(round(new_x)),int(round(new_y)))
+        new_x = pixel_x - vehicle_size_rotated[0] / 2
+        new_y = pixel_y - vehicle_size_rotated[1] / 2
+        pos = (int(round(new_x)), int(round(new_y)))
 
         if self.should_be_blit(vehicle_rotated, pos):
 
@@ -740,69 +768,67 @@ class Visualization:
         return
 
     def draw_goal(self, goal_x, goal_y):
-        '''
-        It will draw a truck, given its states, x, y and yaw.
-        It does so by calling draw_vehicle_image with 
-        the truck image as an argument
-        '''
-        
+        """
+        Draw a goal, given its position, x, y.
+
+        It does so by calling draw_vehicle_image with the goal image as an
+        argument
+        """
         goal_yaw = 0
-
         self.draw_vehicle_image(goal_x, goal_y, goal_yaw, self.goal_image)
-
         return
 
     def draw_goal_circle(self, vehicle_x, vehicle_y):
-        '''
-        Draws a given image vehicle, with the position
-        and yaw given in the arguments
-        '''
-        goal_radius_meters = 0.25*32.
+        """Draw a goal circle, given its state, x, y."""
+        goal_radius_meters = 0.25 * 32.
         # pixel_per_meter_image = car_image_height/car_width_meters
         [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
-        [x_pixel_2, _] = self.convert_position_to_image_pixel(goal_radius_meters, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(
+                                        goal_radius_meters,
+                                        0)
 
-        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x, vehicle_y)
+        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x,
+                                                                  vehicle_y)
 
         color = (255, 0, 255)
         pos = (pixel_x, pixel_y)
         radius = int(round(x_pixel_2 - x_pixel_1))
-        width = 0 # Makes the circle filled
+        width = 0  # Makes the circle filled
 
         pygame.draw.circle(self.window, color, pos, radius, width)
 
-        blit_radius = int(round(1.2*radius))
+        blit_radius = int(round(1.2 * radius))
 
-        self.areas_to_blit.append([pos[0] - blit_radius, pos[1] - blit_radius, pos[0] + blit_radius, pos[1] + blit_radius])
-
+        self.areas_to_blit.append([pos[0] - blit_radius, pos[1] - blit_radius,
+                                   pos[0] + blit_radius, pos[1] + blit_radius])
         return
 
     def should_be_blit(self, surface, surface_pos):
-        '''
+        """
+        Decide if surface is worth blitting or not.
+
         TO BE IMPLEMENTED
         This function should receive a surface and the position
         of said surface, and decide if this image is worth blitting
         or not.
         An image is not worth blitting if it falls completely outside
         of the image area. Otherwise it should be blit
-        '''
+        """
         should_be_blit = True
 
         # (image_width, image_height) = self.bg_surface_pixel_array.get_size()
 
-        # if surface_pos[0] < 0 and surface_pos[1] < 0 
-
+        # if surface_pos[0] < 0 and surface_pos[1] < 0
 
         return should_be_blit
 
     def draw_id(self, vehicle_id, vehicle_x, vehicle_y):
-        '''
-        Draw a vehicle id, given its id, x, y and yaw.
-        '''
+        """Draw a vehicle id, given its id, x, y and yaw."""
+        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x,
+                                                                  vehicle_y)
 
-        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x, vehicle_y)
-
-        text_surface = self.ids_font.render(str(vehicle_id), True, self.font_color)
+        text_surface = self.ids_font.render(str(vehicle_id), True,
+                                            self.font_color)
 
         text_pos = (pixel_x, pixel_y)
 
@@ -812,35 +838,30 @@ class Visualization:
      
         return
 
-    def get_da(self,p1,p2):
-        dx = p2[0]-p1[0]
-        dy = p2[1]-p1[1]
-        rads = math.atan2(-dy,dx)
-        rads %= 2.0*math.pi
-        return (math.sqrt(dy**2+dx**2),rads)
+    def get_da(self, p1, p2):
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        rads = math.atan2(-dy, dx)
+        rads %= 2.0 * math.pi
+        return (math.sqrt(dy**2 + dx**2), rads)
          
-
     def add_surface_to_areas_to_blit(self, surface, surface_pos):
-        '''
-        Add the area of the region defined by surface
-        and surface_pos to self.areas_to_blit.
-        This will tell the smart_background_blit
-        method that this area needs to be blitted with the
-        background in the next screen refresh
-        '''
+        """
+        Add surface region to the self.areas_to_blit list.
 
+        Add the area of the region defined by surface and surface_pos to
+        self.areas_to_blit.  This will tell the smart_background_blit method
+        that this area needs to be blitted with the background in the next
+        screen refresh
+        """
         (surface_width, surface_height) = surface.get_size()
 
-        self.areas_to_blit.append([surface_pos[0], surface_pos[1], surface_width, surface_height])
-
+        self.areas_to_blit.append([surface_pos[0], surface_pos[1],
+                                   surface_width, surface_height])
         return
 
     def display_image(self):
-        '''
-        Calls the methods needed to refresh and
-        display the current image
-        '''
-
+        """Call the methods needed to refresh and display the current image."""
         # First, redraw the image to be the original
         # brackground, with no vehicles in it.
 
@@ -851,7 +872,6 @@ class Visualization:
         # draw the vehicles
         self.draw_vehicles()
 
-
         # Pygame functions to update the visualization
         # window
         pygame.display.flip()
@@ -860,13 +880,14 @@ class Visualization:
         return
 
     def convert_position_to_image_pixel(self, x_pos, y_pos):
-        '''
-        Given a position in real world meters, it will return
-        the equivalent pixel in the visualization window image.
-        '''
+        """
+        Convert world coordinates to pixel coordinates.
 
-        x_pixel = self.image_center_x + x_pos*self.image_pixel_per_meter
-        y_pixel = self.image_center_y - y_pos*self.image_pixel_per_meter
+        Given a position in real world meters, it will return the equivalent
+        pixel in the visualization window image.
+        """
+        x_pixel = self.image_center_x + x_pos * self.image_pixel_per_meter
+        y_pixel = self.image_center_y - y_pos * self.image_pixel_per_meter
         
         x_pixel = int(round(x_pixel))
         y_pixel = int(round(y_pixel))
