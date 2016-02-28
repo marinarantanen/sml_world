@@ -9,7 +9,6 @@ Created on Feb 25, 2016
 
 import pygame
 import os
-import math
 
 from sml_modules import bodyclasses
 from vehicle_models import DummyVehicle
@@ -453,7 +452,7 @@ class Visualization:
         return
 
     def load_big_box_image(self):
-        """Load the truck image, used for displaying the current vehicles."""
+        """Load the big_box image, used for displaying the current vehicles."""
         box_length_meters = 32. * 0.6
 
         box_image = pygame.image.load(
@@ -480,7 +479,7 @@ class Visualization:
         return
 
     def load_small_box_image(self):
-        """Load the truck image, used for displaying the current vehicles."""
+        """Load small_box image, used for displaying the current vehicles."""
         box_length_meters = 32. * 0.4
 
         box_image = pygame.image.load(
@@ -507,7 +506,7 @@ class Visualization:
         return
 
     def load_goal_image(self):
-        """Load the truck image, used for displaying the current vehicles."""
+        """Load the goal image, used for displaying the current vehicles."""
         box_length_meters = 32. * 0.2
 
         flag_image = pygame.image.load(
@@ -837,13 +836,6 @@ class Visualization:
         self.add_surface_to_areas_to_blit(text_surface, text_pos)
      
         return
-
-    def get_da(self, p1, p2):
-        dx = p2[0] - p1[0]
-        dy = p2[1] - p1[1]
-        rads = math.atan2(-dy, dx)
-        rads %= 2.0 * math.pi
-        return (math.sqrt(dy**2 + dx**2), rads)
          
     def add_surface_to_areas_to_blit(self, surface, surface_pos):
         """
