@@ -25,6 +25,8 @@ def update_state(data, vis_module):
     @param data: I{String} Json string that represents the world state.
     @param vis_module: I{VisualisationModule} The initialized visualization
                        module used to show the current state of the simulation.
+
+    @todo: Integrate ROS-messages for the world state.
     """
     world_state = {}
     ws = json.loads(data.data)
