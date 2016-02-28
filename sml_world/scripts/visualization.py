@@ -26,7 +26,6 @@ def update_state(data, vis_module):
     @param vis_module: I{VisualisationModule} The initialized visualization
                        module used to show the current state of the simulation.
     """
-    # print json.loads(data.data)
     world_state = {}
     ws = json.loads(data.data)
     for v in ws:
