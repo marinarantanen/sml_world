@@ -43,6 +43,7 @@ def visualizer(vis_module):
     """
     rospy.init_node('visualizer', anonymous=True)
     rospy.Subscriber('world_state', String, update_state, vis_module)
+    rospy.loginfo("ROS-node 'visualizer' start spinning.")
     rospy.spin()
 
 
