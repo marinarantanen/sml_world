@@ -10,30 +10,33 @@ Created on Feb 23, 2016
 """
 
 import os
-import json
 
 import rospy
-from std_msgs.msg import String
+from sml_world.msg import WorldState
 
 from sml_modules.visualization_module import Visualization
 from sml_modules.road_module import RoadModule
 
 
-def update_state(data, vis_module):
+def update_state(ws, vis_module):
     """Callback function for topic 'world_state'.
 
-    @param data: I{String} Json string that represents the world state.
+    @param ws: I{WorldState} ROS-message of the world state.
     @param vis_module: I{VisualisationModule} The initialized visualization
                        module used to show the current state of the simulation.
 
     @todo: Integrate ROS-messages for the world state.
     """
-    world_state = {}
-    ws = json.loads(data.data)
-    for v in ws:
-        world_state[int(v)] = ws[v]
-    vis_module.loop_iteration(world_state)
-
+    ws_dict = {}
+    for vs in ws.vehicle_states:
+        ws_dict[vs.vehicle_id] = {}
+        ws_dict[vs.vehicle_id]['id'] = vs.vehicle_id
+        ws_dict[vs.vehicle_id]['class_name'] = vs.class_name
+        ws_dict[vs.vehicle_id]['x'] = vs.x
+        ws_dict[vs.vehicle_id]['y'] = vs.y
+        ws_dict[vs.vehicle_id]['yaw'] = vs.yaw
+    vis_module.loop_iteration(ws_dict)
+    
 
 def visualizer(vis_module):
     """Initialize ROS-node 'visualizer' and start subscriber to 'world_state'.
@@ -42,7 +45,7 @@ def visualizer(vis_module):
                        module used to show the current state of the simulation.
     """
     rospy.init_node('visualizer', anonymous=True)
-    rospy.Subscriber('world_state', String, update_state, vis_module)
+    rospy.Subscriber('world_state', WorldState, update_state, vis_module)
     rospy.loginfo("ROS-node 'visualizer' start spinning.")
     rospy.spin()
 
