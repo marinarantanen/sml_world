@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # license removed for brevity
 """
-Visualization mode of the SML-World.
+Visualization node of the SML-World.
 
 Created on Feb 23, 2016
 
@@ -19,7 +19,8 @@ from sml_modules.road_module import RoadModule
 
 
 def update_state(ws, vis_module):
-    """Callback function for topic 'world_state'.
+    """
+    Callback function for topic 'world_state'.
 
     @param ws: I{WorldState} ROS-message of the world state.
     @param vis_module: I{VisualisationModule} The initialized visualization
@@ -39,7 +40,8 @@ def update_state(ws, vis_module):
     
 
 def visualizer(vis_module):
-    """Initialize ROS-node 'visualizer' and start subscriber to 'world_state'.
+    """
+    Initialize ROS-node 'visualizer' and start subscriber to 'world_state'.
 
     @param vis_module: I{VisualisationModule} The initialized visualization
                        module used to show the current state of the simulation.
