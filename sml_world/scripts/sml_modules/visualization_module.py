@@ -235,12 +235,12 @@ class Visualization:
                                  int(self.desired_window_height)))
 
             self.image_pixel_per_meter = (self.desired_window_width /
-                                          (self.projector_area[0] +
-                                           self.projector_area[1]) * 32.)
+                                          ((self.projector_area[0] +
+                                            self.projector_area[1]) * 32.))
             self.image_pixel_per_meter = (self.desired_window_height /
-                                          (self.projector_area[3] +
-                                           self.projector_area[2]) * 32.)
-
+                                          ((self.projector_area[3] +
+                                            self.projector_area[2]) * 32.))
+            
             self.image_center_x = (self.desired_window_width *
                                    self.projector_area[0] /
                                    (self.projector_area[0] +
