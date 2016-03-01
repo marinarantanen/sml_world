@@ -72,7 +72,7 @@ def road_network(file_location):
     """Initialize ROS-node 'road_network' and start the services."""
     road_module = RoadModuleExtend(file_location)
 
-    rospy.init_node('road_network', anonymous=True)
+    rospy.init_node('road_network')
     rospy.Service('get_map_location', GetMapLocation,
                   road_module.handle_get_map_location)
     rospy.Service('get_trajectory', GetTrajectory,

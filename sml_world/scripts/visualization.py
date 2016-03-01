@@ -44,7 +44,7 @@ def visualizer(vis_module):
     @param vis_module: I{VisualisationModule} The initialized visualization
                        module used to show the current state of the simulation.
     """
-    rospy.init_node('visualizer', anonymous=True)
+    rospy.init_node('visualizer')
     rospy.Subscriber('world_state', WorldState, update_state, vis_module)
     rospy.loginfo("ROS-node 'visualizer' start spinning.")
     rospy.spin()
