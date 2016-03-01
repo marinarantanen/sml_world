@@ -13,7 +13,9 @@ import sys
 import os
 
 import rospy
+from sml_world.msg import Point2D
 from sml_world.srv import GetMapLocation, GetMapLocationResponse
+from sml_world.srv import GetTrajectory, GetTrajectoryResponse
 
 from sml_modules.road_module.RoadModule import RoadModule
 
@@ -46,6 +48,25 @@ class RoadModuleExtend(RoadModule):
         """
         return GetMapLocationResponse(self.map_location)
 
+    def handle_get_trajectory(self, req):
+        """
+        Handle the get trajectory request.
+
+        @param req: I{GetTrajectory} Request of the service that provides a
+                    trajectory to follow.
+        """
+        if req.loop:
+            print "get_closed_path_from_node_id"
+            tx, ty = self.get_closed_path_from_node_id(req.start_id)
+        else:
+            print "get_path_between_node_ids"
+            tx, ty = self.get_path_between_node_ids(req.start_id,
+                                                    req.end_id)
+        trajectory = []
+        for x, y in zip(tx, ty):
+            trajectory.append(Point2D(x, y))
+        return GetTrajectoryResponse(trajectory)
+
 
 def road_network(file_location):
     """Initialize ROS-node 'road_network' and start the services."""
@@ -54,6 +75,8 @@ def road_network(file_location):
     rospy.init_node('road_network', anonymous=True)
     rospy.Service('get_map_location', GetMapLocation,
                   road_module.handle_get_map_location)
+    rospy.Service('get_trajectory', GetTrajectory,
+                  road_module.handle_get_trajectory)
     rospy.spin()
 
 
