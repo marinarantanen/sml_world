@@ -1,0 +1,5 @@
+bool loop
+int32 start_id
+int32 end_id
+---
+Point2D[] trajectory
