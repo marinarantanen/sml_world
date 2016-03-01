@@ -9,13 +9,11 @@ Created on Feb 23, 2016
 @organization: KTH
 """
 
-import os
-
 import rospy
 from sml_world.msg import WorldState
+from sml_world.srv import GetMapLocation
 
 from sml_modules.visualization_module import Visualization
-from sml_modules.road_module import RoadModule
 
 
 def update_state(ws, vis_module):
@@ -53,12 +51,17 @@ def visualizer(vis_module):
 
 
 if __name__ == '__main__':
-    # Initialize road
-    base_path = os.path.dirname(__file__)
-    file_location = "/resources/scenarios/HighwaySML"
-    road_module = RoadModule.RoadModule(base_path, file_location)
+    # Request the map location.
+    rospy.wait_for_service('get_map_location')
+    try:
+        get_map = rospy.ServiceProxy('get_map_location', GetMapLocation)
+        resp = get_map()
+        base_path = resp.base_path
+        map_location = resp.map_location
+    except rospy.ServiceException, e:
+        raise "Service call failed: %s" % e
     # Initialize the visualization module
-    vis_module = Visualization(base_path, file_location, 800, 600, 5, True)
+    vis_module = Visualization(base_path, map_location, 800, 600, 5, True)
     print "vis_module_started."
     vis_module.loop_iteration({})
     visualizer(vis_module)
