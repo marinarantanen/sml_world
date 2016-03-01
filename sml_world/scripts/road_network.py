@@ -36,7 +36,7 @@ class RoadModuleExtend(RoadModule):
                               containing the road network information.
         """
         base_path = os.path.dirname(__file__)
-        self.map_location = base_path + file_location
+        self.map_location = file_location
         super(RoadModuleExtend, self).__init__(base_path, file_location)
 
     def handle_get_map_location(self, req):
@@ -46,7 +46,7 @@ class RoadModuleExtend(RoadModule):
         @param req: I{GetMapLocation} Request of the service that provides the
                     map location to client.
         """
-        return GetMapLocationResponse(self.map_location)
+        return GetMapLocationResponse(self.base_path, self.map_location)
 
     def handle_get_trajectory(self, req):
         """
