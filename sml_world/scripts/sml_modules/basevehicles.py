@@ -13,11 +13,13 @@ class BaseVehicle(WheeledVehicle):
 
     def __init__(self, namespace):
         """Initialize class BaseVehicle."""
-        rospy.Subscriber(namespace + '/sensor_readings', String)
-        rospy.Subscriber(namespace + '/receivable_com', String)
+        rospy.Subscriber(namespace + '/sensor_readings', String,
+                         self.process_sensor_readings)
+        rospy.Subscriber(namespace + '/receivable_com', String,
+                         self.process_receivable_com)
 
         self.pub_state = rospy.Publisher(namespace + "/current_vehicle_state",
-                                         VehicleState)
+                                         VehicleState, queue_size=10)
 
         rospy.wait_for_service(namespace + '/publish_com')
         self.publish_com = rospy.ServiceProxy(namespace + '/publish_com',
