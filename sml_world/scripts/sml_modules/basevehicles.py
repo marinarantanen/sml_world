@@ -43,10 +43,17 @@ class BaseVehicle(WheeledVehicle):
         #                                       PublishCom)
 
         self.vehicle_id = vehicle_id
+        self.class_name = self.__class__
         self.simulation_rate = simulation_rate
-        self.sensors = []
 
-        self.simulation_loop()
+        # Set parameters of base vehicle to default values.
+        self.simulate = False
+        self.sensors = []
+        self.x = 0.
+        self.y = 0.
+        self.yaw = 0.
+        self.v = 0.
+        self.np_trajectory = []
 
     def simulation_loop(self):
         """The simulation loop of the car."""
