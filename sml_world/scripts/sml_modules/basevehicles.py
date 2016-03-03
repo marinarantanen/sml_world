@@ -1,6 +1,7 @@
 """Base classes for simulated vehicles."""
 import time
 import random
+import numpy
 
 import rospy
 from std_msgs.msg import String
@@ -10,6 +11,7 @@ from sml_world.srv import SetVehicleState, SetVehicleStateResponse
 from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
+from sml_world.srv import GetTrajectory
 # from sml_world.srv import PublishCom
 
 
@@ -117,7 +119,16 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetLoop)} Request of the service that sets the vehicles
                     closed loop trajectory.
         """
-        return SetLoopResponse()
+        rospy.wait_for_service('get_tranjectory')
+        try:
+            get_traj = rospy.ServiceProxy('get_tranjectory', GetTrajectory)
+            trajectory = get_traj(True, req.node_id, 0).trajectory
+        except rospy.ServiceException, e:
+            raise "Service call failed: %s" % e
+        self.numpy_trajectory = to_numpy_trajectory(trajectory)
+        msg = ("Closed loop trajectory of vehicle #%i " % self.vehicle_id +
+               "successfully set.")
+        return SetLoopResponse(True, msg)
 
     def handle_set_destination(self, req):
         """
@@ -135,3 +146,15 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(Trigger)} Request to start the vehicle simulation.
         """
         return TriggerResponse()
+
+
+def to_numpy_trajectory(self, trajectory):
+    """Transform Pose2D[] message to numpy array."""
+    tx = []
+    ty = []
+    tyaw = []
+    for pose in trajectory:
+        tx.append(pose.x)
+        ty.append(pose.y)
+        tyaw.append(pose.yaw)
+    return numpy.asarray([tx, ty, tyaw])
