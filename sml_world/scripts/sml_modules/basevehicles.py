@@ -5,7 +5,12 @@ import random
 import rospy
 from std_msgs.msg import String
 from sml_world.msg import VehicleState
+from sml_world.srv import SetVehicleState, SetVehicleStateResponse
+from sml_world.srv import SetSpeed, SetSpeedResponse
+from sml_world.srv import SetLoop, SetLoopResponse
+from sml_world.srv import SetDestination, SetDestinationResponse
 # from sml_world.srv import PublishCom
+
 
 from sml_modules.bodyclasses import WheeledVehicle
 
@@ -20,9 +25,16 @@ class BaseVehicle(WheeledVehicle):
         rospy.Subscriber(namespace + '/receivable_com', String,
                          self.process_receivable_com)
 
-        self.pub_state = rospy.Publisher(namespace + "/current_vehicle_state",
+        self.pub_state = rospy.Publisher(namespace + '/current_vehicle_state',
                                          VehicleState, queue_size=10)
 
+        rospy.Service(namespace + '/set_state', SetVehicleState,
+                      self.handle_set_state)
+        rospy.Service(namespace + 'set_speed', SetSpeed,
+                      self.handle_set_speed)
+        rospy.Service(namespace + 'set_loop', SetLoop, self.handle_set_loop)
+        rospy.Service(namespace + 'set_destination', SetDestination,
+                      self.handle_set_destination)
         # rospy.wait_for_service(namespace + '/publish_com')
         # self.publish_com = rospy.ServiceProxy(namespace + '/publish_com',
         #                                       PublishCom)
@@ -64,3 +76,39 @@ class BaseVehicle(WheeledVehicle):
     def process_receivable_com(self, data):
         """Process the receivable communication."""
         print data.data
+
+    def handle_set_state(self, req):
+        """
+        Handle the set state request.
+
+        @param req: I{(SetState)} Request of the service that sets the vehicle
+                    state.
+        """
+        return SetVehicleStateResponse()
+
+    def handle_set_speed(self, req):
+        """
+        Handle the set speed request.
+
+        @param req: I{(SetSpeed)} Request of the service that sets the vehicles
+                    cruising speed.
+        """
+        return SetSpeedResponse()
+
+    def handle_set_loop(self, req):
+        """
+        Handle the set closed loop request.
+
+        @param req: I{(SetLoop)} Request of the service that sets the vehicles
+                    closed loop trajectory.
+        """
+        return SetLoopResponse()
+
+    def handle_set_destination(self, req):
+        """
+        Handle the set destination request.
+
+        @param req: I{(SetDestination)} Request of the service that sets the
+                    vehicles trajectory to a specific destination.
+        """
+        return SetDestinationResponse()
