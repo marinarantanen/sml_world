@@ -57,6 +57,10 @@ add_service_files(
   FILES
   GetMapLocation.srv
   GetTrajectory.srv
+  SetVehicleState.srv
+  SetSpeed.srv
+  SetLoop.srv
+  SetDestination.srv
 )
 
 ## Generate actions in the 'action' folder
