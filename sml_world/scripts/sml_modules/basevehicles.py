@@ -94,7 +94,12 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetState)} Request of the service that sets the vehicle
                     state.
         """
-        return SetVehicleStateResponse()
+        self.x = req.x
+        self.y = req.y
+        self.yaw = req.yaw
+        self.v = req.v
+        msg = "State of vehicle #%i successfully set." % self.vehicle_id
+        return SetVehicleStateResponse(True, msg)
 
     def handle_set_speed(self, req):
         """
