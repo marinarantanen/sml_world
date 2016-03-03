@@ -12,14 +12,17 @@ import sys
 
 import rospy
 
+from sml_modules.basevehicles import BaseVehicle
+
 
 def vehicle(vehicle_id):
     """
     Initialize ROS-node 'vehicle' and register subs, pubs and services.
 
-    @param vehicle_id
+    @param vehicle_id: I{(int)} ID of the vehicle that is created.
     """
-    rospy.init_node('vehicle', anonymous=True)
+    rospy.init_node('vehicle', anonymous=True, log_level=rospy.WARN)
+    BaseVehicle(rospy.get_name(), vehicle_id, 3)
     rospy.spin()
 
 
@@ -28,4 +31,4 @@ if __name__ == '__main__':
         vehicle_id = sys.argv[1]
     else:
         raise Exception("vehicle_id as argument expected.")
-    vehicle(vehicle_id)
+    vehicle(int(vehicle_id))
