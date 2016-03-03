@@ -110,7 +110,9 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetSpeed)} Request of the service that sets the vehicles
                     cruising speed.
         """
-        return SetSpeedResponse()
+        self.v = req.speed
+        msg = "Speed of vehicle #%i successfully set." % self.vehicle_id
+        return SetSpeedResponse(True, msg)
 
     def handle_set_loop(self, req):
         """
