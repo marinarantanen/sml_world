@@ -139,7 +139,17 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetDestination)} Request of the service that sets the
                     vehicles trajectory to a specific destination.
         """
-        return SetDestinationResponse()
+        rospy.wait_for_service('get_tranjectory')
+        try:
+            get_traj = rospy.ServiceProxy('get_tranjectory', GetTrajectory)
+            current_node = ...
+            trajectory = get_traj(False, current_node, req.dest_id).trajectory
+        except rospy.ServiceException, e:
+            raise "Service call failed: %s" % e
+        self.numpy_trajectory = to_numpy_trajectory(trajectory)
+        msg = ("Trajectory to destination of vehicle #%i " % self.vehicle_id +
+               "successfully set.")
+        return SetDestinationResponse(True, msg)
 
     def handle_start_simulation(self, req):
         """
