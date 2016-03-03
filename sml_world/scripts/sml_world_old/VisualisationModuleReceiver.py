@@ -25,8 +25,9 @@ class VisualisationModuleReceiver:
         self.received_packet_counter = -1
         # Initialize the receiver socket
         self.start_udp_receiver_socket()
-        self.pub = rospy.Publisher('world_state', WorldState, queue_size=10)
+        self.pub = rospy.Publisher('current_vehicle_state', VehicleState, queue_size=10)
         rospy.init_node('simulator_world_class', anonymous=True)
+        self.rate = rospy.Rate(40)
 
 
     def start_udp_receiver_socket(self):
@@ -165,8 +166,7 @@ class VisualisationModuleReceiver:
 
             vehicles_dict[vehicle_id] = vehicle
         
-        world_state = WorldState()
-        ws = []
+        # world_state = WorldState()
         for v_id in vehicles_dict:
             vs = VehicleState()
             vs.vehicle_id = v_id
@@ -174,10 +174,12 @@ class VisualisationModuleReceiver:
             vs.x = vehicles_dict[v_id]['x']
             vs.y = vehicles_dict[v_id]['y']
             vs.yaw = vehicles_dict[v_id]['yaw']
-            ws.append(vs)
-        print ws
-        world_state.vehicle_states = ws
-        self.pub.publish(world_state)
+            self.pub.publish(vs)
+            print vs
+        self.rate.sleep()
+        # world_state.vehicle_states = ws
+        # self.pub.publish(world_state)
+        
         self.visualisation_module.vehicles_dict = vehicles_dict
 
         return
