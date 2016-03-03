@@ -5,7 +5,7 @@ import numpy
 
 import rospy
 from std_msgs.msg import String
-from std_srvs.msg import Trigger, TriggerResponse
+from std_srvs.srv import Trigger, TriggerResponse
 from sml_world.msg import VehicleState
 from sml_world.srv import SetVehicleState, SetVehicleStateResponse
 from sml_world.srv import SetSpeed, SetSpeedResponse
@@ -142,7 +142,7 @@ class BaseVehicle(WheeledVehicle):
         rospy.wait_for_service('get_tranjectory')
         try:
             get_traj = rospy.ServiceProxy('get_tranjectory', GetTrajectory)
-            current_node = ...
+            current_node = None
             trajectory = get_traj(False, current_node, req.dest_id).trajectory
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
