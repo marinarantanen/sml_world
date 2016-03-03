@@ -49,7 +49,7 @@ add_message_files(
   FILES
   VehicleState.msg
   WorldState.msg
-  Point2D.msg
+  Pose2D.msg
 )
 
 ## Generate services in the 'srv' folder
