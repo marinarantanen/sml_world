@@ -8,9 +8,45 @@ Created on Mar 1, 2016
 @author: U{David Spulak<spulak@kth.se>}
 @organization: KTH
 """
+import Queue
 
 import rospy
+from roslaunch.scriptapi import ROSLaunch
+from roslaunch.core import Node
 from sml_world.msg import VehicleState, WorldState
+from sml_world.srv import SpawnVehicle, SpawnVehicleResponse
+
+
+class ROSLaunchExtended(ROSLaunch):
+    """Extended version of the ROSLaunch class."""
+
+    def __init__(self):
+        """Initialize the ROSLaunchExtended class."""
+        super(ROSLaunchExtended, self).__init__()
+        rospy.Service('spawn_vehicle', SpawnVehicle, self.handle_spawn_vehicle)
+        # Working with a launch queue is necessary, because self.launch()
+        # only works in the main thread.  Service calls spawn sidethreads.
+        self.launch_queue = Queue.Queue()
+        self.launched_processes = []
+        self.start()
+
+    def handle_spawn_vehicle(self, req):
+        """Sawn new vehicle."""
+        namespace = "vehicle_" + str(req.vehicle_id)
+        args = "%i %s %f %f %f %i" % (req.vehicle_id, req.class_name,
+                                      req.x, req.y, req.yaw, req.v)
+        node = Node('sml_world', 'vehicle.py',
+                    namespace=namespace, args=args, name='vehicle')
+        print type(node)
+        self.launch_queue.put(node)
+        msg = ("Vehicle #%i is in spawning Queue " % req.vehicle_id +
+               "and will be spawned shortly.")
+        return SpawnVehicleResponse(True, msg)
+
+    def spawn_vehicle(self):
+        """Spawn vehicle node."""
+        node = self.launch_queue.get()
+        self.launched_processes.append(self.launch(node))
 
 
 def update_vehicle_state(vs, vs_dict):
@@ -31,9 +67,14 @@ def sml_world():
     rospy.init_node('sml_world')
     rospy.Subscriber('current_vehicle_state', VehicleState,
                      update_vehicle_state, vs_dict)
+
+    launcher = ROSLaunchExtended()
+
     pub_ws = rospy.Publisher('world_state', WorldState, queue_size=10)
     rate = rospy.Rate(60)  # 60hz
     while not rospy.is_shutdown():
+        while not launcher.launch_queue.empty():
+            launcher.spawn_vehicle()
         world_state.vehicle_states = vs_dict.values()
         pub_ws.publish(world_state)
         rate.sleep()
