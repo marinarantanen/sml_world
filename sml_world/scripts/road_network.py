@@ -63,6 +63,7 @@ class RoadModuleExtend(RoadModule):
             print "get_path_between_node_ids"
             tx, ty = self.get_path_between_node_ids(req.start_id,
                                                     req.end_id)
+        trajectory = []
         if tx:
             # txp[i] = tx[i+1]
             txp = tx[1:]+[tx[0]]
@@ -71,11 +72,10 @@ class RoadModuleExtend(RoadModule):
         else:
             txp = []
             typ = []
-        trajectory = []
         for x, y, xp, yp in zip(tx, ty, txp, typ):
             dx = xp - x
             dy = yp - y
-            yaw = math.radians(math.atan2(dy, dx))
+            yaw = math.atan2(dy, dx)
             trajectory.append(Pose2D(x, y, yaw))
         return GetTrajectoryResponse(trajectory)
 
