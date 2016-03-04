@@ -28,7 +28,7 @@ class BaseVehicle(WheeledVehicle):
         rospy.Subscriber(namespace + 'receivable_com', String,
                          self.process_receivable_com)
 
-        self.pub_state = rospy.Publisher('current_vehicle_state',
+        self.pub_state = rospy.Publisher('/current_vehicle_state',
                                          VehicleState, queue_size=10)
 
         rospy.Service(namespace + 'set_state', SetVehicleState,
@@ -195,9 +195,9 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetLoop)} Request of the service that sets the vehicles
                     closed loop trajectory.
         """
-        rospy.wait_for_service('get_trajectory')
+        rospy.wait_for_service('/get_trajectory')
         try:
-            get_traj = rospy.ServiceProxy('get_trajectory', GetTrajectory)
+            get_traj = rospy.ServiceProxy('/get_trajectory', GetTrajectory)
             trajectory = get_traj(True, req.node_id, 0).trajectory
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
