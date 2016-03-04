@@ -1,10 +1,11 @@
 """Base classes for simulated vehicles."""
 import numpy
+import threading
 
 import rospy
 from std_msgs.msg import String
-from std_srvs.srv import SetBool, SetBoolResponse
 from sml_world.msg import VehicleState
+from sml_world.srv import SetBool, SetBoolResponse
 from sml_world.srv import SetVehicleState, SetVehicleStateResponse
 from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
@@ -58,11 +59,19 @@ class BaseVehicle(WheeledVehicle):
         self.np_trajectory = []
         self.commands = []
 
+        # Start the simulation loop in a separate thread.
+        sim_thread = threading.Thread(target=self.simulation_loop)
+        sim_thread.daemon = True
+        sim_thread.start()
+
     def simulation_loop(self):
         """The simulation loop of the car."""
         rate = rospy.Rate(self.simulation_rate)
         while not rospy.is_shutdown():
-            self.simulation_step()
+            # Simulate only if the simulate flat is set.
+            if self.simulate:
+                self.simulation_step()
+            # Check if simulatio rate could be achieved or not.
             if rate.remaining() < rospy.Duration(0):
                 rospy.logwarn("Simulation rate of vehicle " +
                               "#%i " % self.vehicle_id +
