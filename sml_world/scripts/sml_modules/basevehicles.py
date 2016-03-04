@@ -1,6 +1,4 @@
 """Base classes for simulated vehicles."""
-import time
-import random
 import numpy
 
 import rospy
@@ -80,9 +78,7 @@ class BaseVehicle(WheeledVehicle):
         closest_ind = self.find_closest_trajectory_pose() + 5
         traj_len = len(self.np_trajectory[0])
         ref_ind = closest_ind % traj_len
-
         ref_state = self.numpy_trajectory[:][ref_ind]
-
         # set controll commands.
         self.set_control_commands(ref_state)
         # update vehicle state.
@@ -103,9 +99,22 @@ class BaseVehicle(WheeledVehicle):
         best_idx = numpy.argmin(temp_distance)
         return best_idx
 
-    def set_control_commands(self):
+    def set_control_commands(self, ref_state):
         """Set the control commands, depending on the vehicles controler."""
-        pass
+        self.commands['speed'] = self.v
+        dx = ref_state[0] - self.x
+        dy = ref_state[1] - self.y
+        dx_v = numpy.cos(self.yaw) * dx + numpy.sin(self.yaw) * dy
+        dy_v = -numpy.sin(self.yaw) * dx + numpy.cos(self.yaw) * dy
+        dyaw_v = ref_state[2] - self.yaw
+
+        steering_command = dy_v + dyaw_v * 1/dx_v
+        # Compare with max steering angle
+        if steering_command > 0.5:
+            steering_command = 0.5
+        elif steering_command < -0.5:
+            steering_command = -0.5
+        self.commands['steering'] = steering_command
 
     def update_vehicle_state(self):
         """Update the vehicle state."""
