@@ -28,7 +28,7 @@ class BaseVehicle(WheeledVehicle):
         rospy.Subscriber(namespace + '/receivable_com', String,
                          self.process_receivable_com)
 
-        self.pub_state = rospy.Publisher(namespace + '/current_vehicle_state',
+        self.pub_state = rospy.Publisher('current_vehicle_state',
                                          VehicleState, queue_size=10)
 
         rospy.Service(namespace + '/set_state', SetVehicleState,
@@ -45,7 +45,7 @@ class BaseVehicle(WheeledVehicle):
         #                                       PublishCom)
 
         self.vehicle_id = vehicle_id
-        self.class_name = self.__class__
+        self.class_name = self.__class__.__name__
         self.simulation_rate = simulation_rate
 
         # Set parameters of base vehicle to default values.
@@ -72,6 +72,9 @@ class BaseVehicle(WheeledVehicle):
             # Simulate only if the simulate flat is set.
             if self.simulate:
                 self.simulation_step()
+                vehicle_state = VehicleState(self.vehicle_id, self.class_name,
+                                             self.x, self.y, self.yaw)
+                self.pub_state.publish(vehicle_state)
             # Check if simulatio rate could be achieved or not.
             if rate.remaining() < rospy.Duration(0):
                 rospy.logwarn("Simulation rate of vehicle " +
