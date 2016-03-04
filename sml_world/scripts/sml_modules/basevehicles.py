@@ -74,14 +74,42 @@ class BaseVehicle(WheeledVehicle):
 
     def simulation_step(self):
         """Simulate one timestep of the car."""
-        # Find closest trajectory point.
+        # Find closest trajectory point, then set reference point 5 indices
+        # ahead of the closest trajecctory point to imporove lateral controller
+        # performance.  Use this trajectory pose as reference pose.
+        closest_ind = self.find_closest_trajectory_pose() + 5
+        traj_len = len(self.np_trajectory[0])
+        ref_ind = closest_ind % traj_len
 
-        # Set reference point 5 indices ahead of the closest trajecctory point
-        # to imporove lateral controller performance.
-        # Get reference state.
+        ref_state = self.numpy_trajectory[:][ref_ind]
 
-        # Drive at the cruise velocity.
-        time.sleep(random.random() / 2.)
+        # set controll commands.
+        self.set_control_commands(ref_state)
+        # update vehicle state.
+        self.update_vehicle_state()
+        # publish vehicle state.
+
+    def find_closest_trajectory_pose(self):
+        """
+        Find closest point to the current vehicle position in the trajectory.
+
+        @return: The index of the closest trajectory point to the current
+                 vehicle position.
+        """
+        np_state = numpy.array([[self.x], [self.y]])
+        temp_distance = numpy.sum(
+                          (self.numpy_trajectory[0:2, :] - np_state) ** 2,
+                          axis=0)
+        best_idx = numpy.argmin(temp_distance)
+        return best_idx
+
+    def set_control_commands(self):
+        """Set the control commands, depending on the vehicles controler."""
+        pass
+
+    def update_vehicle_state(self):
+        """Update the vehicle state."""
+        pass
 
     def process_sensor_readings(self, data):
         """Process all sensor readings."""
@@ -162,7 +190,7 @@ class BaseVehicle(WheeledVehicle):
         return TriggerResponse()
 
 
-def to_numpy_trajectory(self, trajectory):
+def to_numpy_trajectory(trajectory):
     """Transform Pose2D[] message to numpy array."""
     tx = []
     ty = []
