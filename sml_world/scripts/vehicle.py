@@ -21,8 +21,8 @@ def vehicle(vehicle_id):
 
     @param vehicle_id: I{(int)} ID of the vehicle that is created.
     """
-    rospy.init_node('vehicle', anonymous=True, log_level=rospy.WARN)
-    BaseVehicle(rospy.get_name(), vehicle_id, 3)
+    rospy.init_node('vehicle', log_level=rospy.WARN)
+    BaseVehicle(rospy.get_namespace(), vehicle_id, 20)
     rospy.spin()
 
 

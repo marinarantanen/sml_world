@@ -23,22 +23,22 @@ class BaseVehicle(WheeledVehicle):
     def __init__(self, namespace, vehicle_id, simulation_rate,
                  x=0., y=0., yaw=0., v=0.):
         """Initialize class BaseVehicle."""
-        rospy.Subscriber(namespace + '/sensor_readings', String,
+        rospy.Subscriber(namespace + 'sensor_readings', String,
                          self.process_sensor_readings)
-        rospy.Subscriber(namespace + '/receivable_com', String,
+        rospy.Subscriber(namespace + 'receivable_com', String,
                          self.process_receivable_com)
 
         self.pub_state = rospy.Publisher('current_vehicle_state',
                                          VehicleState, queue_size=10)
 
-        rospy.Service(namespace + '/set_state', SetVehicleState,
+        rospy.Service(namespace + 'set_state', SetVehicleState,
                       self.handle_set_state)
-        rospy.Service(namespace + '/set_speed', SetSpeed,
-                      self.handle_set_speed)
-        rospy.Service(namespace + '/set_loop', SetLoop, self.handle_set_loop)
-        rospy.Service(namespace + '/set_destination', SetDestination,
+        rospy.Service(namespace + 'set_speed_kph', SetSpeed,
+                      self.handle_set_speed_kph)
+        rospy.Service(namespace + 'set_loop', SetLoop, self.handle_set_loop)
+        rospy.Service(namespace + 'set_destination', SetDestination,
                       self.handle_set_destination)
-        rospy.Service(namespace + '/toggle_simulation', SetBool,
+        rospy.Service(namespace + 'toggle_simulation', SetBool,
                       self.handle_toggle_simulation)
         # rospy.wait_for_service(namespace + '/publish_com')
         # self.publish_com = rospy.ServiceProxy(namespace + '/publish_com',
@@ -122,7 +122,6 @@ class BaseVehicle(WheeledVehicle):
         dx_v = numpy.cos(self.yaw) * dx + numpy.sin(self.yaw) * dy
         dy_v = -numpy.sin(self.yaw) * dx + numpy.cos(self.yaw) * dy
         dyaw_v = ref_state[2] - self.yaw
-        print dyaw_v, ref_state[2], self.yaw
         # Correct yaw difference. dyaw_v 0..pi
         while dyaw_v > numpy.pi:
             dyaw_v -= 2*numpy.pi
@@ -178,14 +177,14 @@ class BaseVehicle(WheeledVehicle):
         msg = "State of vehicle #%i successfully set." % self.vehicle_id
         return SetVehicleStateResponse(True, msg)
 
-    def handle_set_speed(self, req):
+    def handle_set_speed_kph(self, req):
         """
         Handle the set speed request.
 
         @param req: I{(SetSpeed)} Request of the service that sets the vehicles
-                    cruising speed.
+                    cruising speed in kmh.
         """
-        self.v = req.speed
+        self.v = req.speed / 3.6
         msg = "Speed of vehicle #%i successfully set." % self.vehicle_id
         return SetSpeedResponse(True, msg)
 
