@@ -15,21 +15,38 @@ import rospy
 from sml_modules.basevehicles import BaseVehicle
 
 
-def vehicle(vehicle_id):
+def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
     """
     Initialize ROS-node 'vehicle' and register subs, pubs and services.
 
     @param vehicle_id: I{(int)} ID of the vehicle that is created.
+    @param vehicle_class: I{(str)} Name of the vehicle class that should be
+                          created.
     """
     rospy.init_node('vehicle', log_level=rospy.WARN)
-    BaseVehicle(rospy.get_namespace(), vehicle_id, 20)
+    if vehicle_class == BaseVehicle.__name__:
+        BaseVehicle(rospy.get_namespace(), vehicle_id, 20,
+                    x, y, yaw, speed_in_ms)
+    else:
+        raise Exception("ERROR: Unknown vehicle class '%s'." % vehicle_class)
     rospy.spin()
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        vehicle_id = sys.argv[1]
+    args = {}
+    if len(sys.argv) > 2:
+        args['vehicle_id'] = int(sys.argv[1])
+        args['vehicle_class'] = str(sys.argv[2])
     else:
-        msg = "Usage: rosrun sml_world vehicle.py <vehicle_id>"
+        msg = ("Usage: rosrun sml_world vehicle.py " +
+               "<vehicle_id> <vehicle_class> <x> <y> <yaw> <speed_in_ms>")
         raise Exception(msg)
-    vehicle(int(vehicle_id))
+    if len(sys.argv) > 3:
+        args['x'] = float(sys.argv[3])
+    if len(sys.argv) > 4:
+        args['y'] = float(sys.argv[4])
+    if len(sys.argv) > 5:
+        args['yaw'] = float(sys.argv[5])
+    if len(sys.argv) > 6:
+        args['speed_in_ms'] = float(sys.argv[6])
+    vehicle(**args)
