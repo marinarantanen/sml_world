@@ -3,7 +3,7 @@ import numpy
 
 import rospy
 from std_msgs.msg import String
-from std_srvs.srv import Trigger, TriggerResponse
+from std_srvs.srv import SetBool, SetBoolResponse
 from sml_world.msg import VehicleState
 from sml_world.srv import SetVehicleState, SetVehicleStateResponse
 from sml_world.srv import SetSpeed, SetSpeedResponse
@@ -37,8 +37,8 @@ class BaseVehicle(WheeledVehicle):
         rospy.Service(namespace + 'set_loop', SetLoop, self.handle_set_loop)
         rospy.Service(namespace + 'set_destination', SetDestination,
                       self.handle_set_destination)
-        rospy.Service(namespace + 'start_simulation', Trigger,
-                      self.handle_start_simulation)
+        rospy.Service(namespace + 'toggle_simulation', SetBool,
+                      self.handle_toggle_simulation)
         # rospy.wait_for_service(namespace + '/publish_com')
         # self.publish_com = rospy.ServiceProxy(namespace + '/publish_com',
         #                                       PublishCom)
@@ -200,13 +200,14 @@ class BaseVehicle(WheeledVehicle):
                "successfully set.")
         return SetDestinationResponse(True, msg)
 
-    def handle_start_simulation(self, req):
+    def handle_toggle_simulation(self, req):
         """
-        Handle the start simulation request.
+        Handle the toggle simulation request.
 
-        @param req: I{(Trigger)} Request to start the vehicle simulation.
+        @param req: I{(SetBool)} Enable/Disable the vehicle simulation.
         """
-        return TriggerResponse()
+        self.simulate = req.data
+        return SetBoolResponse()
 
 
 def to_numpy_trajectory(trajectory):
