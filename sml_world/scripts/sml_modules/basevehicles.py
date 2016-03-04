@@ -202,7 +202,6 @@ class BaseVehicle(WheeledVehicle):
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
         self.np_trajectory = to_numpy_trajectory(trajectory)
-        print self.np_trajectory
         msg = ("Closed loop trajectory of vehicle #%i " % self.vehicle_id +
                "successfully set.")
         return SetLoopResponse(True, msg)

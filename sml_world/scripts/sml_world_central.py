@@ -21,7 +21,6 @@ def update_vehicle_state(vs, vs_dict):
                world state.
     @param vs_dict: I{dict} Dict of all vehicle states that is updated.
     """
-    print "vehicle_id:", vs.vehicle_id
     vs_dict[vs.vehicle_id] = vs
 
 
