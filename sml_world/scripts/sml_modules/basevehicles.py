@@ -207,7 +207,11 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetBool)} Enable/Disable the vehicle simulation.
         """
         self.simulate = req.data
-        return SetBoolResponse()
+        if self.simulate:
+            msg = "Vehicle #%i will now be simulated." % self.vehicle_id
+        else:
+            msg = "Vehicle #%i will stop to be simulated." % self.vehicle_id
+        return SetBoolResponse(True, msg)
 
 
 def to_numpy_trajectory(trajectory):
