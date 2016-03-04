@@ -21,7 +21,8 @@ from sml_modules.bodyclasses import WheeledVehicle
 class BaseVehicle(WheeledVehicle):
     """Base class for all vehicles."""
 
-    def __init__(self, namespace, vehicle_id, simulation_rate):
+    def __init__(self, namespace, vehicle_id, simulation_rate,
+                 x=0., y=0., yaw=0., v=0.):
         """Initialize class BaseVehicle."""
         rospy.Subscriber(namespace + '/sensor_readings', String,
                          self.process_sensor_readings)
@@ -51,11 +52,12 @@ class BaseVehicle(WheeledVehicle):
         # Set parameters of base vehicle to default values.
         self.simulate = False
         self.sensors = []
-        self.x = 0.
-        self.y = 0.
-        self.yaw = 0.
-        self.v = 0.
+        self.x = x
+        self.y = y
+        self.yaw = yaw
+        self.v = v
         self.np_trajectory = []
+        self.commands = []
 
     def simulation_loop(self):
         """The simulation loop of the car."""
