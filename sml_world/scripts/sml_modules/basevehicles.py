@@ -33,12 +33,12 @@ class BaseVehicle(WheeledVehicle):
 
         rospy.Service(namespace + '/set_state', SetVehicleState,
                       self.handle_set_state)
-        rospy.Service(namespace + 'set_speed', SetSpeed,
+        rospy.Service(namespace + '/set_speed', SetSpeed,
                       self.handle_set_speed)
-        rospy.Service(namespace + 'set_loop', SetLoop, self.handle_set_loop)
-        rospy.Service(namespace + 'set_destination', SetDestination,
+        rospy.Service(namespace + '/set_loop', SetLoop, self.handle_set_loop)
+        rospy.Service(namespace + '/set_destination', SetDestination,
                       self.handle_set_destination)
-        rospy.Service(namespace + 'toggle_simulation', SetBool,
+        rospy.Service(namespace + '/toggle_simulation', SetBool,
                       self.handle_toggle_simulation)
         # rospy.wait_for_service(namespace + '/publish_com')
         # self.publish_com = rospy.ServiceProxy(namespace + '/publish_com',
@@ -57,7 +57,7 @@ class BaseVehicle(WheeledVehicle):
         self.v = v
         self.axles_distance = 1.9
         self.np_trajectory = []
-        self.commands = []
+        self.commands = {}
 
         # Start the simulation loop in a separate thread.
         sim_thread = threading.Thread(target=self.simulation_loop)
@@ -68,6 +68,7 @@ class BaseVehicle(WheeledVehicle):
         """The simulation loop of the car."""
         rate = rospy.Rate(self.simulation_rate)
         while not rospy.is_shutdown():
+            # print self.x, self.y, self.yaw, self.v
             # Simulate only if the simulate flat is set.
             if self.simulate:
                 self.simulation_step()
@@ -88,7 +89,7 @@ class BaseVehicle(WheeledVehicle):
         closest_ind = self.find_closest_trajectory_pose() + 5
         traj_len = len(self.np_trajectory[0])
         ref_ind = closest_ind % traj_len
-        ref_state = self.numpy_trajectory[:][ref_ind]
+        ref_state = self.np_trajectory[:, ref_ind]
         # set controll commands.
         self.set_control_commands(ref_state)
         # update vehicle state.
@@ -104,7 +105,7 @@ class BaseVehicle(WheeledVehicle):
         """
         np_state = numpy.array([[self.x], [self.y]])
         temp_distance = numpy.sum(
-                          (self.numpy_trajectory[0:2, :] - np_state) ** 2,
+                          (self.np_trajectory[0:2, :] - np_state) ** 2,
                           axis=0)
         best_idx = numpy.argmin(temp_distance)
         return best_idx
@@ -179,13 +180,14 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetLoop)} Request of the service that sets the vehicles
                     closed loop trajectory.
         """
-        rospy.wait_for_service('get_tranjectory')
+        rospy.wait_for_service('get_trajectory')
         try:
-            get_traj = rospy.ServiceProxy('get_tranjectory', GetTrajectory)
+            get_traj = rospy.ServiceProxy('get_trajectory', GetTrajectory)
             trajectory = get_traj(True, req.node_id, 0).trajectory
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
-        self.numpy_trajectory = to_numpy_trajectory(trajectory)
+        self.np_trajectory = to_numpy_trajectory(trajectory)
+        print self.np_trajectory
         msg = ("Closed loop trajectory of vehicle #%i " % self.vehicle_id +
                "successfully set.")
         return SetLoopResponse(True, msg)
@@ -204,7 +206,7 @@ class BaseVehicle(WheeledVehicle):
             trajectory = get_traj(False, current_node, req.dest_id).trajectory
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
-        self.numpy_trajectory = to_numpy_trajectory(trajectory)
+        self.np_trajectory = to_numpy_trajectory(trajectory)
         msg = ("Trajectory to destination of vehicle #%i " % self.vehicle_id +
                "successfully set.")
         return SetDestinationResponse(True, msg)
