@@ -86,10 +86,11 @@ class BaseVehicle(WheeledVehicle):
 
     def simulation_step(self):
         """Simulate one timestep of the car."""
-        # Find closest trajectory point, then set reference point 5 indices
+        # Find closest trajectory point, then set reference point some indices
         # ahead of the closest trajecctory point to imporove lateral controller
         # performance.  Use this trajectory pose as reference pose.
-        closest_ind = self.find_closest_trajectory_pose() + 5
+        closest_ind = (self.find_closest_trajectory_pose() +
+                       numpy.round(self.v / 4))
         traj_len = len(self.np_trajectory[0])
         ref_ind = closest_ind % traj_len
         ref_state = self.np_trajectory[:, ref_ind]
@@ -121,8 +122,14 @@ class BaseVehicle(WheeledVehicle):
         dx_v = numpy.cos(self.yaw) * dx + numpy.sin(self.yaw) * dy
         dy_v = -numpy.sin(self.yaw) * dx + numpy.cos(self.yaw) * dy
         dyaw_v = ref_state[2] - self.yaw
-
-        steering_command = dy_v + dyaw_v * 1/dx_v
+        print dyaw_v, ref_state[2], self.yaw
+        # Correct yaw difference. dyaw_v 0..pi
+        while dyaw_v > numpy.pi:
+            dyaw_v -= 2*numpy.pi
+        while dyaw_v < -numpy.pi:
+            dyaw_v += 2*numpy.pi
+        # Calculate steering command from dy_v, dx_v and dyaw_v
+        steering_command = dy_v + dyaw_v * 1.5 / (1 + dx_v)
         # Compare with max steering angle
         if steering_command > 0.5:
             steering_command = 0.5
@@ -142,6 +149,12 @@ class BaseVehicle(WheeledVehicle):
         self.yaw += ((self.v / self.axles_distance) *
                      numpy.tan(self.commands['steering_angle']) *
                      sim_timestep)
+        # Make sure self.yaw is never negative.
+        # self.yaw 0..2pi
+        if self.yaw > 2*numpy.pi:
+            self.yaw = 0.
+        elif self.yaw < 0.:
+            self.yaw += 2*numpy.pi
 
     def process_sensor_readings(self, data):
         """Process all sensor readings."""

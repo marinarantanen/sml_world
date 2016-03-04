@@ -76,6 +76,11 @@ class RoadModuleExtend(RoadModule):
             dx = xp - x
             dy = yp - y
             yaw = math.atan2(dy, dx)
+            # Make sure yaw is never negative.
+            # yaw 0..2pi
+            if yaw < 0.:
+                yaw += 2*math.pi
+                print "->", yaw
             trajectory.append(Pose2D(x, y, yaw))
         return GetTrajectoryResponse(trajectory)
 
