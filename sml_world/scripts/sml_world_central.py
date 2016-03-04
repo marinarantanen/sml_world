@@ -33,11 +33,10 @@ class ROSLaunchExtended(ROSLaunch):
     def handle_spawn_vehicle(self, req):
         """Sawn new vehicle."""
         namespace = "vehicle_" + str(req.vehicle_id)
-        args = "%i %s %f %f %f %i" % (req.vehicle_id, req.class_name,
+        args = "%i %s %f %f %f %f" % (req.vehicle_id, req.class_name,
                                       req.x, req.y, req.yaw, req.v)
         node = Node('sml_world', 'vehicle.py',
                     namespace=namespace, args=args, name='vehicle')
-        print type(node)
         self.launch_queue.put(node)
         msg = ("Vehicle #%i is in spawning Queue " % req.vehicle_id +
                "and will be spawned shortly.")
