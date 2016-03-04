@@ -54,6 +54,7 @@ class BaseVehicle(WheeledVehicle):
         self.y = y
         self.yaw = yaw
         self.v = v
+        self.axles_distance = 1.9
         self.np_trajectory = []
         self.commands = []
 
@@ -114,11 +115,20 @@ class BaseVehicle(WheeledVehicle):
             steering_command = 0.5
         elif steering_command < -0.5:
             steering_command = -0.5
-        self.commands['steering'] = steering_command
+        self.commands['steering_angle'] = steering_command
 
     def update_vehicle_state(self):
         """Update the vehicle state."""
-        pass
+        sim_timestep = 1. / self.simulation_rate
+        # Decompose v into x and y component.
+        vx = numpy.cos(self.yaw) * self.v
+        vy = numpy.sin(self.yaw) * self.v
+        # Update vehicles position
+        self.x += vx * sim_timestep
+        self.y += vy * sim_timestep
+        self.yaw += ((self.v / self.axles_distance) *
+                     numpy.tan(self.commands['steering_angle']) *
+                     sim_timestep)
 
     def process_sensor_readings(self, data):
         """Process all sensor readings."""
