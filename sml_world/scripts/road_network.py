@@ -101,5 +101,6 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         file_location = sys.argv[1]
     else:
-        raise Exception("file_location as argument expected.")
+        msg = "Usage: rosrun sml_world road_network.py <file_location>"
+        raise Exception(msg)
     road_network(file_location)

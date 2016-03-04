@@ -30,5 +30,6 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         vehicle_id = sys.argv[1]
     else:
-        raise Exception("vehicle_id as argument expected.")
+        msg = "Usage: rosrun sml_world vehicle.py <vehicle_id>"
+        raise Exception(msg)
     vehicle(int(vehicle_id))
