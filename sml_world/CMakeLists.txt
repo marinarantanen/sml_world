@@ -62,6 +62,7 @@ add_service_files(
   SetLoop.srv
   SetDestination.srv
   SetBool.srv
+  SpawnVehicle.srv
 )
 
 ## Generate actions in the 'action' folder
