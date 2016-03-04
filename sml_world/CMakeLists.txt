@@ -49,7 +49,7 @@ add_message_files(
   FILES
   VehicleState.msg
   WorldState.msg
-  Point2D.msg
+  Pose2D.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -57,6 +57,11 @@ add_service_files(
   FILES
   GetMapLocation.srv
   GetTrajectory.srv
+  SetVehicleState.srv
+  SetSpeed.srv
+  SetLoop.srv
+  SetDestination.srv
+  SetBool.srv
 )
 
 ## Generate actions in the 'action' folder

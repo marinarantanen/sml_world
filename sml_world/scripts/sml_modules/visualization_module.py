@@ -9,9 +9,11 @@ Created on Feb 25, 2016
 
 import pygame
 import os
+import math
 
 from sml_modules import bodyclasses
-from vehicle_models import DummyVehicle
+from sml_modules.vehicle_models import DummyVehicle
+from sml_modules.basevehicles import BaseVehicle
 
 
 class Visualization:
@@ -80,7 +82,7 @@ class Visualization:
         self.setup_id_font()
 
         self.show_ids = True
-        
+
     def loop_iteration(self, world_state):
         """
         Draw the received world state.
@@ -92,7 +94,7 @@ class Visualization:
             1) Receive the latest vehicle states information
                through UDP
             2) Draw said states
-        
+
         Returns:
         A boolean indicating if the user closed the
         visualization window (True) or not (False)
@@ -106,10 +108,10 @@ class Visualization:
 
             # Checks if the user tried to close the Window
             if event.type == pygame.QUIT:
-                
+
                 pygame.quit()
                 return True
-            
+
     def load_image_meta_data(self, map_filename):
         """
         Load the meta data corresponding to map_filename.
@@ -240,7 +242,7 @@ class Visualization:
             self.image_pixel_per_meter = (self.desired_window_height /
                                           ((self.projector_area[3] +
                                             self.projector_area[2]) * 32.))
-            
+
             self.image_center_x = (self.desired_window_width *
                                    self.projector_area[0] /
                                    (self.projector_area[0] +
@@ -335,7 +337,7 @@ class Visualization:
             x = 0
             y = 0
             os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
-            
+
             # pygame.NOFRAME makes the visualization window not have a Frame
             self.window = pygame.display.set_mode(image_size, pygame.NOFRAME)
 
@@ -393,7 +395,7 @@ class Visualization:
         """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
         car_length_meters = (4.779 - 0.910) * 2.
-        
+
         self.white_car_image = self.get_car_image(
                         self.base_path + '/resources/carWhiteOffset.png',
                         car_width_meters, car_length_meters)
@@ -582,7 +584,7 @@ class Visualization:
             vehicle = self.vehicles_dict[vehicle_id]
 
             vehicle_class_name = vehicle['class_name']
-            
+
             if vehicle_class_name == bodyclasses.QualisysGoal.__name__:
                 self.draw_goal(vehicle['x'], vehicle['y'])
 
@@ -592,7 +594,8 @@ class Visualization:
             elif vehicle_class_name == bodyclasses.QualisysSmallBox.__name__:
                 self.draw_small_box(vehicle['x'], vehicle['y'], vehicle['yaw'])
 
-            elif vehicle_class_name == DummyVehicle.__name__:
+            elif (vehicle_class_name == DummyVehicle.__name__ or
+                  vehicle_class_name == BaseVehicle.__name__):
                 if vehicle_id > -100:
                     color = vehicle_id % 5
 
@@ -750,10 +753,10 @@ class Visualization:
         """Draw a given vehicle image, given its position and yaw."""
         [pixel_x, pixel_y] = self.convert_position_to_image_pixel(vehicle_x,
                                                                   vehicle_y)
-
+        vehicle_yaw = math.degrees(vehicle_yaw)
         vehicle_rotated = pygame.transform.rotate(vehicle_image, vehicle_yaw)
         vehicle_size_rotated = vehicle_rotated.get_size()
-        
+
         new_x = pixel_x - vehicle_size_rotated[0] / 2
         new_y = pixel_y - vehicle_size_rotated[1] / 2
         pos = (int(round(new_x)), int(round(new_y)))
@@ -761,7 +764,7 @@ class Visualization:
         if self.should_be_blit(vehicle_rotated, pos):
 
             self.window.blit(vehicle_rotated, pos)
-          
+
             self.add_surface_to_areas_to_blit(vehicle_rotated, pos)
 
         return
@@ -834,9 +837,9 @@ class Visualization:
         self.window.blit(text_surface, text_pos)
 
         self.add_surface_to_areas_to_blit(text_surface, text_pos)
-     
+
         return
-         
+
     def add_surface_to_areas_to_blit(self, surface, surface_pos):
         """
         Add surface region to the self.areas_to_blit list.
@@ -880,7 +883,7 @@ class Visualization:
         """
         x_pixel = self.image_center_x + x_pos * self.image_pixel_per_meter
         y_pixel = self.image_center_y - y_pos * self.image_pixel_per_meter
-        
+
         x_pixel = int(round(x_pixel))
         y_pixel = int(round(y_pixel))
 

@@ -11,9 +11,10 @@ Created on Feb 29, 2016
 
 import sys
 import os
+import math
 
 import rospy
-from sml_world.msg import Point2D
+from sml_world.msg import Pose2D
 from sml_world.srv import GetMapLocation, GetMapLocationResponse
 from sml_world.srv import GetTrajectory, GetTrajectoryResponse
 
@@ -63,8 +64,24 @@ class RoadModuleExtend(RoadModule):
             tx, ty = self.get_path_between_node_ids(req.start_id,
                                                     req.end_id)
         trajectory = []
-        for x, y in zip(tx, ty):
-            trajectory.append(Point2D(x, y))
+        if tx:
+            # txp[i] = tx[i+1]
+            txp = tx[1:]+[tx[0]]
+            # typ[i] = ty[i+1]
+            typ = ty[1:]+[ty[0]]
+        else:
+            txp = []
+            typ = []
+        for x, y, xp, yp in zip(tx, ty, txp, typ):
+            dx = xp - x
+            dy = yp - y
+            yaw = math.atan2(dy, dx)
+            # Make sure yaw is never negative.
+            # yaw 0..2pi
+            if yaw < 0.:
+                yaw += 2*math.pi
+                print "->", yaw
+            trajectory.append(Pose2D(x, y, yaw))
         return GetTrajectoryResponse(trajectory)
 
 
@@ -84,5 +101,6 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         file_location = sys.argv[1]
     else:
-        raise Exception("file_location as argument expected.")
+        msg = "Usage: rosrun sml_world road_network.py <file_location>"
+        raise Exception(msg)
     road_network(file_location)
