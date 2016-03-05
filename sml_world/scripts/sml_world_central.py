@@ -15,6 +15,7 @@ from roslaunch.scriptapi import ROSLaunch
 from roslaunch.core import Node
 from sml_world.msg import VehicleState, WorldState
 from sml_world.srv import SpawnVehicle, SpawnVehicleResponse
+from sml_world.srv import SetLoop
 
 
 class ROSLaunchExtended(ROSLaunch):
@@ -38,8 +39,15 @@ class ROSLaunchExtended(ROSLaunch):
         node = Node('sml_world', 'vehicle.py',
                     namespace=namespace, args=args, name='vehicle')
         self.launch_queue.put(node)
-        msg = ("Vehicle #%i is in spawning Queue " % req.vehicle_id +
-               "and will be spawned shortly.")
+        loop_service = '/' + namespace + '/set_loop'
+        rospy.wait_for_service(loop_service)
+        if bool(req.node_id):
+            try:
+                set_loop = rospy.ServiceProxy(loop_service, SetLoop)
+                set_loop(req.node_id)
+            except rospy.ServiceException, e:
+                raise "Service call failed: %s" % e
+        msg = ("Vehicle #%i was successfully spawned." % req.vehicle_id)
         return SpawnVehicleResponse(True, msg)
 
     def spawn_vehicle(self):
