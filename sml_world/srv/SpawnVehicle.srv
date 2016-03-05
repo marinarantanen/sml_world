@@ -1,0 +1,14 @@
+int32 vehicle_id
+string class_name
+
+float64 x
+float64 y
+float64 yaw
+float64 v
+
+int32 node_id
+
+bool toggle_sim
+---
+bool success
+string message
