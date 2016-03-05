@@ -16,6 +16,7 @@ from roslaunch.core import Node
 from sml_world.msg import VehicleState, WorldState
 from sml_world.srv import SpawnVehicle, SpawnVehicleResponse
 from sml_world.srv import SetLoop
+from sml_world.srv import SetBool
 
 
 class ROSLaunchExtended(ROSLaunch):
@@ -47,6 +48,13 @@ class ROSLaunchExtended(ROSLaunch):
                 set_loop(req.node_id)
             except rospy.ServiceException, e:
                 raise "Service call failed: %s" % e
+        toggle_sim_serv = '/' + namespace + '/toggle_simulation'
+        rospy.wait_for_service(toggle_sim_serv)
+        try:
+            toggle_sim = rospy.ServiceProxy(toggle_sim_serv, SetBool)
+            toggle_sim(req.toggle_sim)
+        except rospy.ServiceException, e:
+            raise "Service call failed: %s" % e
         msg = ("Vehicle #%i was successfully spawned." % req.vehicle_id)
         return SpawnVehicleResponse(True, msg)
 
