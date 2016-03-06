@@ -42,3 +42,19 @@ class Radar(BaseSensor):
     def publish_readings(self):
         """Publish the sensor readings."""
         self.pub_readings.publish("These are the sensor readings!")
+
+
+class Velodyne(BaseSensor):
+    """Radar sensor class."""
+
+    def __init__(self, vehicle_id, name, sens_range):
+        """Initialize class."""
+        super(Radar, self).__init__(vehicle_id)
+        self.name = name
+        self.sens_range = sens_range
+        self.pub_readings = rospy.Publisher(self.name, String,
+                                            queue_size=10)
+
+    def publish_readings(self):
+        """Publish the sensor readings."""
+        self.pub_readings.publish("These are the sensor readings!")
