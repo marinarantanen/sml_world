@@ -35,7 +35,7 @@ def update_state(ws, vis_module):
         ws_dict[vs.vehicle_id]['y'] = vs.y
         ws_dict[vs.vehicle_id]['yaw'] = vs.yaw
     vis_module.loop_iteration(ws_dict)
-    
+
 
 def visualizer(vis_module):
     """
