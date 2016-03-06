@@ -1,5 +1,5 @@
 
-class Body():
+class Body(object):
 	# This is the base class for all the objects in the simulation (trucks, obstacles etc)
 	def __init__(self):
 		# Unique identifier for every body
@@ -12,7 +12,7 @@ class Body():
 		self.roll = 0.
 		# Specifies the type of body (truck, excavator, bus, person, etc...)
 		self.type = ''
-		# Specifies if the body is simulated, or real (obtained from Qualisys) 
+		# Specifies if the body is simulated, or real (obtained from Qualisys)
 		self.simulated = True
 
 
@@ -59,7 +59,7 @@ class Moving(Body):
 class UnitySimulatorCar(Moving):
 	def __init__(self):
 		Moving.__init__(self)
-		
+
 
 class Static(Body):
 	# Child class of Body, it will be used for every body that is static (antenna, obstacle, etc...)
@@ -72,7 +72,7 @@ class Person(Static):
 	def __init__(self):
 		Static.__init__(self)
 		self.bus_stop_destination_string = None
-		
+
 
 class Antenna(Static):
 	# Child class of static, to be used with antennas
@@ -93,7 +93,7 @@ class RectangularObstacle(Obstacle):
 		Obstacle.__init__(self)
 		self.width = 0.
 		self.height = 0.
-		
+
 
 class CircularObstacle(Obstacle):
 	# Child class of Obstacle, it will be used for every circular obstacle
@@ -109,7 +109,7 @@ class Controllable(Moving):
 		# Sensor readings can be used by the controller in order to avoid collisions
 		self.sensor_readings = []
 		# A controller will be responsible for setting the commands to the values that will result in a desired behaviour
-		self.commands = [] 
+		self.commands = []
 
 
 class WheeledVehicle(Controllable):
@@ -132,18 +132,18 @@ class DummyVehicle(WheeledVehicle):
 	# Child class of WheeledVehicle, it will be used for the Dummy Vehicles
 	def __init__(self):
 		WheeledVehicle.__init__(self)
-		self.axles_distance = 2.8 
+		self.axles_distance = 2.8
 
 
 class BusVehicle(WheeledVehicle):
 	# Child class of WheeledVehicle, it will be used for the Bus Vehicles
 	def __init__(self):
 		WheeledVehicle.__init__(self)
-		self.axles_distance = 6.0 
+		self.axles_distance = 6.0
 		self.people_capacity = 20
 		self.people_on_board = 0
 		self.distance_to_next_stop = 0.
-		self.current_bus_stop = None		
+		self.current_bus_stop = None
 		self.next_bus_stop = None
 		self.ids_on_board = []
 
