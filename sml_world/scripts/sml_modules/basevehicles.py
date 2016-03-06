@@ -35,7 +35,7 @@ class BaseVehicle(WheeledVehicle):
 
         # Set parameters of base vehicle to default values.
         self.simulate = False
-        self.sensors = ['Radar']
+        self.sensors = []
         self.x = x
         self.y = y
         self.yaw = yaw
@@ -44,7 +44,6 @@ class BaseVehicle(WheeledVehicle):
         self.np_trajectory = []
         self.commands = {}
 
-        self.launch_sensors()
         # Start the simulation loop in a separate thread.
         sim_thread = threading.Thread(target=self.simulation_loop)
         sim_thread.daemon = True
@@ -71,7 +70,7 @@ class BaseVehicle(WheeledVehicle):
         rospy.Service(self.namespace + 'toggle_simulation', SetBool,
                       self.handle_toggle_simulation)
         # rospy.wait_for_service(self.namespace + '/publish_com')
-        # self.publish_com = rospy.ServiceProxy(self.namespace + '/publish_com',
+        # self.publish_com = rospy.ServiceProxy(self.namespace + 'publish_com',
         #                                       PublishCom)
 
     def simulation_loop(self):
