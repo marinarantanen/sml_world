@@ -165,6 +165,20 @@ class BaseVehicle(WheeledVehicle):
         elif self.yaw < 0.:
             self.yaw += 2*numpy.pi
 
+    def launch_sensors(self):
+        """Launch and register the sensors used by the vehicle."""
+        # Go through sensor list.
+        for sensor in self.sensors:
+            # Launch sensor node.
+            subpub_name = sensor.lower()+'_sensor'
+            node = Node('sml_world', 'sensor.py', namespace=self.namespace,
+                        args=sensor, name=subpub_name)
+            self.launcher.launch(node)
+            # Register subscriptions for each of them.
+            rospy.Subscriber(self.namespace + subpub_name, String,
+                             self.process_sensor_readings)
+        pass
+
     def process_sensor_readings(self, data):
         """Process all sensor readings."""
         print data.data
