@@ -75,7 +75,7 @@ def update_vehicle_state(vs, vs_dict):
     vs_dict[vs.vehicle_id] = vs
 
 
-def sml_world():
+def sml_world_central():
     """Inizialize ROS-node 'sml_world' and start subs, pubs and srvs."""
     world_state = WorldState()
     vs_dict = {}  # Saves all vehicle states in a dict with vehicle_id as key
@@ -101,4 +101,4 @@ def sml_world():
 
 
 if __name__ == '__main__':
-    sml_world()
+    sml_world_central()
