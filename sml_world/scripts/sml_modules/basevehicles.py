@@ -3,6 +3,8 @@ import numpy
 import threading
 
 import rospy
+from roslaunch.scriptapi import ROSLaunch
+from roslaunch.core import Node
 from std_msgs.msg import String
 from sml_world.msg import VehicleState
 from sml_world.srv import SetBool, SetBoolResponse
@@ -13,7 +15,6 @@ from sml_world.srv import SetDestination, SetDestinationResponse
 from sml_world.srv import GetTrajectory
 # from sml_world.srv import PublishCom
 
-
 from sml_modules.bodyclasses import WheeledVehicle
 
 
@@ -23,26 +24,10 @@ class BaseVehicle(WheeledVehicle):
     def __init__(self, namespace, vehicle_id, simulation_rate,
                  x=0., y=0., yaw=0., v=0.):
         """Initialize class BaseVehicle."""
-        rospy.Subscriber(namespace + 'sensor_readings', String,
-                         self.process_sensor_readings)
-        rospy.Subscriber(namespace + 'receivable_com', String,
-                         self.process_receivable_com)
+        self.launcher = ROSLaunch()
+        self.launcher.start()
 
-        self.pub_state = rospy.Publisher('/current_vehicle_state',
-                                         VehicleState, queue_size=10)
-
-        rospy.Service(namespace + 'set_state', SetVehicleState,
-                      self.handle_set_state)
-        rospy.Service(namespace + 'set_speed_kph', SetSpeed,
-                      self.handle_set_speed_kph)
-        rospy.Service(namespace + 'set_loop', SetLoop, self.handle_set_loop)
-        rospy.Service(namespace + 'set_destination', SetDestination,
-                      self.handle_set_destination)
-        rospy.Service(namespace + 'toggle_simulation', SetBool,
-                      self.handle_toggle_simulation)
-        # rospy.wait_for_service(namespace + '/publish_com')
-        # self.publish_com = rospy.ServiceProxy(namespace + '/publish_com',
-        #                                       PublishCom)
+        self.namespace = namespace
 
         self.vehicle_id = vehicle_id
         self.class_name = self.__class__.__name__
@@ -50,7 +35,7 @@ class BaseVehicle(WheeledVehicle):
 
         # Set parameters of base vehicle to default values.
         self.simulate = False
-        self.sensors = []
+        self.sensors = ['Radar']
         self.x = x
         self.y = y
         self.yaw = yaw
@@ -59,10 +44,35 @@ class BaseVehicle(WheeledVehicle):
         self.np_trajectory = []
         self.commands = {}
 
+        self.launch_sensors()
         # Start the simulation loop in a separate thread.
         sim_thread = threading.Thread(target=self.simulation_loop)
         sim_thread.daemon = True
         sim_thread.start()
+
+        # Register all services, pubs and subs last to prevent attempts to use
+        # the services before the initialization of the vehicle is finished.
+        rospy.Subscriber(self.namespace + 'sensor_readings', String,
+                         self.process_sensor_readings)
+        rospy.Subscriber(self.namespace + 'receivable_com', String,
+                         self.process_receivable_com)
+
+        self.pub_state = rospy.Publisher('/current_vehicle_state',
+                                         VehicleState, queue_size=10)
+
+        rospy.Service(self.namespace + 'set_state', SetVehicleState,
+                      self.handle_set_state)
+        rospy.Service(self.namespace + 'set_speed_kph', SetSpeed,
+                      self.handle_set_speed_kph)
+        rospy.Service(self.namespace + 'set_loop', SetLoop,
+                      self.handle_set_loop)
+        rospy.Service(self.namespace + 'set_destination', SetDestination,
+                      self.handle_set_destination)
+        rospy.Service(self.namespace + 'toggle_simulation', SetBool,
+                      self.handle_toggle_simulation)
+        # rospy.wait_for_service(self.namespace + '/publish_com')
+        # self.publish_com = rospy.ServiceProxy(self.namespace + '/publish_com',
+        #                                       PublishCom)
 
     def simulation_loop(self):
         """The simulation loop of the car."""
