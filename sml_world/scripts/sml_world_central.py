@@ -79,7 +79,7 @@ def sml_world():
     """Inizialize ROS-node 'sml_world' and start subs, pubs and srvs."""
     world_state = WorldState()
     vs_dict = {}  # Saves all vehicle states in a dict with vehicle_id as key
-    rospy.init_node('sml_world')
+    rospy.init_node('sml_world', log_level=rospy.WARN)
     rospy.Subscriber('current_vehicle_state', VehicleState,
                      update_vehicle_state, vs_dict)
 
@@ -92,7 +92,12 @@ def sml_world():
             launcher.spawn_vehicle()
         world_state.vehicle_states = vs_dict.values()
         pub_ws.publish(world_state)
-        rate.sleep()
+        if rate.remaining() < rospy.Duration(0):
+            rospy.logwarn("SML-World central could not keep up with the " +
+                          "update rate aimed for.")
+            rate.last_time = rospy.get_rostime()
+        else:
+            rate.sleep()
 
 
 if __name__ == '__main__':
