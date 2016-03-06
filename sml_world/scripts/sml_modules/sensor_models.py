@@ -30,10 +30,12 @@ class BaseSensor(object):
 class Radar(BaseSensor):
     """Radar sensor class."""
 
-    def __init__(self, vehicle_id, name):
+    def __init__(self, vehicle_id, name, sens_range, sens_angle):
         """Initialize class."""
         super(Radar, self).__init__(vehicle_id)
         self.name = name
+        self.sens_range = sens_range
+        self.sens_angle = sens_angle
         self.pub_readings = rospy.Publisher(self.name, String,
                                             queue_size=10)
 
