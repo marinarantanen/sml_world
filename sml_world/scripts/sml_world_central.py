@@ -38,7 +38,8 @@ class ROSLaunchExtended(ROSLaunch):
         args = "%i %s %f %f %f %f" % (req.vehicle_id, req.class_name,
                                       req.x, req.y, req.yaw, req.v)
         node = Node('sml_world', 'vehicle.py',
-                    namespace=namespace, args=args, name='vehicle')
+                    namespace=namespace, args=args,
+                    name=req.class_name.lower())
         self.launch_queue.put(node)
         loop_service = '/' + namespace + '/set_loop'
         rospy.wait_for_service(loop_service)
