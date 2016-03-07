@@ -13,7 +13,7 @@ class BaseSensor(object):
 
     def __init__(self, vehicle_id):
         """Initialize class BaseSensor."""
-        self.vehicle_id = vehicle_id
+        self.vehicle_id = int(vehicle_id)
         self.vehicle_states = numpy.asarray([[], [], [], [], []])
         rospy.Subscriber('/world_state', WorldState, self.update_state)
 

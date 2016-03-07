@@ -29,7 +29,7 @@ class BaseVehicle(WheeledVehicle):
 
         self.namespace = namespace
 
-        self.vehicle_id = vehicle_id
+        self.vehicle_id = int(vehicle_id)
         self.class_name = self.__class__.__name__
         self.simulation_rate = simulation_rate
 
