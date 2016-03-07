@@ -33,6 +33,8 @@ def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
 
 
 if __name__ == '__main__':
+    # Filter sys.argv to remove automatically added arguments
+    sys.argv = [arg for arg in sys.argv if str(arg).find(':=') < 0]
     args = {}
     if len(sys.argv) > 2:
         args['vehicle_id'] = int(sys.argv[1])
