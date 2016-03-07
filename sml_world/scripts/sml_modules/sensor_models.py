@@ -21,10 +21,11 @@ class BaseSensor(object):
         """Callback function for topic 'world_state'."""
         self.vehicle_states = numpy.asarray([[], [], [], [], []])
         for vs in ws.vehicle_states:
-            numpy.concatenate((self.vehicle_states,
-                               [[vs.vehicle_id], [vs.x], [vs.y],
-                                [vs.yaw], [vs.v]]),
-                              axis=1)
+            self.vehicle_states = numpy.concatenate(
+                                        (self.vehicle_states,
+                                         [[vs.vehicle_id], [vs.x], [vs.y],
+                                          [vs.yaw], [vs.v]]),
+                                        axis=1)
 
 
 class Radar(BaseSensor):
