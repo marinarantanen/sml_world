@@ -14,14 +14,14 @@ class BaseSensor(object):
     def __init__(self, vehicle_id):
         """Initialize class BaseSensor."""
         self.vehicle_id = vehicle_id
-        self.vehicle_poses = numpy.asarray([[], [], [], [], []])
+        self.vehicle_states = numpy.asarray([[], [], [], [], []])
         rospy.Subscriber('/world_state', WorldState, self.update_state)
 
     def update_state(self, ws):
         """Callback function for topic 'world_state'."""
-        self.vehicle_poses = numpy.asarray([[], [], [], [], []])
+        self.vehicle_states = numpy.asarray([[], [], [], [], []])
         for vs in ws.vehicle_states:
-            numpy.concatenate((self.vehicle_poses,
+            numpy.concatenate((self.vehicle_states,
                                [[vs.vehicle_id], [vs.x], [vs.y],
                                 [vs.yaw], [vs.v]]),
                               axis=1)
