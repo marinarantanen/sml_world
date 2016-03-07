@@ -82,7 +82,7 @@ class BaseVehicle(WheeledVehicle):
             if self.simulate:
                 self.simulation_step()
                 vehicle_state = VehicleState(self.vehicle_id, self.class_name,
-                                             self.x, self.y, self.yaw)
+                                             self.x, self.y, self.yaw, self.v)
                 self.pub_state.publish(vehicle_state)
             # Check if simulatio rate could be achieved or not.
             if rate.remaining() < rospy.Duration(0):
