@@ -12,7 +12,7 @@ import sys
 
 import rospy
 
-from sml_modules.basevehicles import BaseVehicle
+from sml_modules.basevehicles import BaseVehicle, DummyVehicle
 
 
 def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
@@ -27,6 +27,9 @@ def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
     if vehicle_class == BaseVehicle.__name__:
         BaseVehicle(rospy.get_namespace(), vehicle_id, 20,
                     x, y, yaw, speed_in_ms)
+    elif vehicle_class == DummyVehicle.__name__:
+        DummyVehicle(rospy.get_namespace(), vehicle_id, 20,
+                     x, y, yaw, speed_in_ms)
     else:
         raise Exception("ERROR: Unknown vehicle class '%s'." % vehicle_class)
     rospy.spin()
