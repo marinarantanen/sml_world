@@ -5,7 +5,7 @@ import threading
 import rospy
 from roslaunch.scriptapi import ROSLaunch
 from roslaunch.core import Node
-from std_msgs.msg import String
+import sml_world.msg as msgs
 from sml_world.msg import VehicleState
 from sml_world.srv import SetBool, SetBoolResponse
 from sml_world.srv import SetVehicleState, SetVehicleStateResponse
@@ -169,13 +169,16 @@ class BaseVehicle(WheeledVehicle):
         # Go through sensor list.
         for sensor in self.sensors:
             # Launch sensor node.
-            subpub_name = sensor.lower()+'_sensor'
+            sensor_name = sensor.partition(' ')[0]
+            subpub_name = sensor_name.lower()+'_readings'
+            args = str(self.vehicle_id)+' '+sensor
             node = Node('sml_world', 'sensor.py', namespace=self.namespace,
-                        args=sensor, name=subpub_name)
+                        args=args, name=subpub_name)
             self.launcher.launch(node)
             # Register subscriptions for each of them.
-            rospy.Subscriber(self.namespace + subpub_name, String,
-                             self.process_sensor_readings)
+            rospy.Subscriber(self.namespace + subpub_name,
+                             getattr(msgs, sensor_name+'Readings'),
+                             getattr(self, 'process_'+subpub_name))
         pass
 
     def process_sensor_readings(self, data):
