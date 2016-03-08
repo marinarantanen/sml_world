@@ -16,7 +16,14 @@ from sml_modules.sensor_models import Radar
 
 
 def sensor(vehicle_id, sensor_type, opt_argv):
-    """Initialize ROS-node 'sensor' and register subs and pubs."""
+    """
+    Initialize ROS-node 'sensor' and register subs and pubs.
+
+    @param sensor_type: I{(str)} Name of the sensor class that should be
+                        started up.
+    @param opt_argv: I{(list)} List of optional parameters that should be
+                     passed to the sensor initialization.
+    """
     rospy.init_node('sensor')
     if sensor_type == 'Radar':
         sensor = Radar(vehicle_id, rospy.get_name(), *opt_argv)
