@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="sml_world" name="road_network" type="road_network.py" args="/resources/scenarios/HighwaySML" />
+    <node pkg="sml_world" name="visualization" type="visualization.py" />
+    <node pkg="sml_world" name="sml_world_central" type="sml_world_central.py" />
+</launch>

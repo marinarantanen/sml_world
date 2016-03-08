@@ -209,7 +209,7 @@ class BaseVehicle(WheeledVehicle):
             subpub_name = sensor_name.lower()+'_readings'
             args = str(self.vehicle_id)+' '+sensor
             node = Node('sml_world', 'sensor.py', namespace=self.namespace,
-                        args=args, name=subpub_name)
+                        args=args, name=sensor_name.lower())
             self.launcher.launch(node)
             # Register subscriptions for each of them.
             rospy.Subscriber(self.namespace + subpub_name,
