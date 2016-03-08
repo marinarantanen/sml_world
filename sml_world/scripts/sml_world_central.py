@@ -33,7 +33,16 @@ class ROSLaunchExtended(ROSLaunch):
         self.start()
 
     def handle_spawn_vehicle(self, req):
-        """Sawn new vehicle."""
+        """
+        Spawn new vehicle.
+
+        This includes starting a new vehicle node and (if a looping node is
+        set) calling its /set_loop service, as well as its /toggle_simulation
+        service.
+
+        @param req: I{(SpawnVehicle)} Request messgae of the service that
+                    spawns a new vehicle.
+        """
         namespace = "vehicle_" + str(req.vehicle_id)
         args = "%i %s %f %f %f %f" % (req.vehicle_id, req.class_name,
                                       req.x, req.y, req.yaw, req.v)
@@ -69,9 +78,9 @@ def update_vehicle_state(vs, vs_dict):
     """
     Write received vehicle state into world state.
 
-    @param vs: I{VehicleState} Vehicle state that needs to be updated in the
+    @param vs: I{(VehicleState)} Vehicle state that needs to be updated in the
                world state.
-    @param vs_dict: I{dict} Dict of all vehicle states that is updated.
+    @param vs_dict: I{(dict)} Dict of all vehicle states that is updated.
     """
     vs_dict[vs.vehicle_id] = vs
 
