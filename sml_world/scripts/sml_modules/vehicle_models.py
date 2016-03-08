@@ -218,16 +218,18 @@ class BaseVehicle(WheeledVehicle):
 
     def launch_coms(self):
         """Launch and register the communications used by the vehicle."""
+        # Go through list of comunication.
         for com in self.coms:
             com_name = com.partition(' ')[0]
-            subpub_name = sensor_name.lower()+'_received'
+            subpub_name = com_name.lower()+'_msgs'
             args = str(self.vehicle.id)+' '+com
             node = Node('sml_world', 'communication.py',
-                        namespace=self.namespace, args=args, name=subpub_name)
+                        namespace=self.namespace, args=args,
+                        name=com_name.lower())
             self.launcher.launch(node)
             # Register subscriptions for each of them.
             rospy.Subscriber(self.namespace + subpub_name,
-                             getattr(msgs, sensor_name+'Readings'),
+                             getattr(msgs, com_name+'Msgs'),
                              getattr(self, 'process_'+subpub_name))
 
     def handle_set_state(self, req):
@@ -376,3 +378,7 @@ class DummyVehicle(BaseVehicle):
                                     (self.radar_readings,
                                      [[r.rho], [r.theta], [r.yaw]]),
                                     axis=1)
+
+    def process_wifi_msgs(self, wm):
+        """Process messages received over wifi."""
+        pass
