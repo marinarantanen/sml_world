@@ -4,6 +4,7 @@ import numpy as np
 
 import rospy
 from sml_world.msg import WorldState
+from sml_world.msg import Pose2DPolar, RadarReadings
 
 from std_msgs.msg import String
 
@@ -35,9 +36,9 @@ class Radar(BaseSensor):
         """Initialize Radar sensor class."""
         super(Radar, self).__init__(vehicle_id)
         self.name = name
-        self.sens_range = sens_range
-        self.sens_angle = sens_angle
-        self.pub_readings = rospy.Publisher(self.name, String,
+        self.sens_range = float(sens_range)
+        self.sens_angle = float(sens_angle) * np.pi/180.
+        self.pub_readings = rospy.Publisher(self.name, RadarReadings,
                                             queue_size=10)
 
     def publish_readings(self):
