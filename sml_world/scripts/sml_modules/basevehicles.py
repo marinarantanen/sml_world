@@ -176,14 +176,6 @@ class BaseVehicle(WheeledVehicle):
                              getattr(self, 'process_'+subpub_name))
         pass
 
-    def process_sensor_readings(self, data):
-        """Process all sensor readings."""
-        print data.data
-
-    def process_receivable_com(self, data):
-        """Process the receivable communication."""
-        print data.data
-
     def handle_set_state(self, req):
         """
         Handle the set state request.
