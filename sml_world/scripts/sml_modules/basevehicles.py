@@ -51,11 +51,6 @@ class BaseVehicle(WheeledVehicle):
 
         # Register all services, pubs and subs last to prevent attempts to use
         # the services before the initialization of the vehicle is finished.
-        rospy.Subscriber(self.namespace + 'sensor_readings', String,
-                         self.process_sensor_readings)
-        rospy.Subscriber(self.namespace + 'receivable_com', String,
-                         self.process_receivable_com)
-
         self.pub_state = rospy.Publisher('/current_vehicle_state',
                                          VehicleState, queue_size=10)
 
