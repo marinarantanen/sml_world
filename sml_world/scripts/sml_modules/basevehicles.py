@@ -1,4 +1,12 @@
-"""Base classes for simulated vehicles."""
+"""
+Module containing classes for all simulated vehicles.
+
+Created on Mar 5, 2016
+
+@author: U{David Spulak<spulak@kth.se>}
+@organization: KTH
+"""
+
 import numpy
 import threading
 
