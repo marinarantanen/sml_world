@@ -221,15 +221,15 @@ class BaseVehicle(WheeledVehicle):
         # Go through list of comunication.
         for com in self.coms:
             com_name = com.partition(' ')[0]
-            subpub_name = com_name.lower()+'_msgs'
-            args = str(self.vehicle.id)+' '+com
+            subpub_name = com_name.lower()+'_com'
+            args = str(self.vehicle_id)+' '+com
             node = Node('sml_world', 'communication.py',
                         namespace=self.namespace, args=args,
                         name=com_name.lower())
             self.launcher.launch(node)
             # Register subscriptions for each of them.
             rospy.Subscriber(self.namespace + subpub_name,
-                             getattr(msgs, com_name+'Msgs'),
+                             getattr(msgs, com_name+'Com'),
                              getattr(self, 'process_'+subpub_name))
 
     def handle_set_state(self, req):
