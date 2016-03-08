@@ -1,4 +1,4 @@
-# 2D cpose on a plane
+# 2D pose on a plane in euclidean coordinates
 
 float64 x
 float64 y

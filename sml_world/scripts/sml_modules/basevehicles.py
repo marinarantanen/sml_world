@@ -3,7 +3,9 @@ import numpy
 import threading
 
 import rospy
-from std_msgs.msg import String
+from roslaunch.scriptapi import ROSLaunch
+from roslaunch.core import Node
+import sml_world.msg as msgs
 from sml_world.msg import VehicleState
 from sml_world.srv import SetBool, SetBoolResponse
 from sml_world.srv import SetVehicleState, SetVehicleStateResponse
@@ -12,7 +14,6 @@ from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
 from sml_world.srv import GetTrajectory
 # from sml_world.srv import PublishCom
-
 
 from sml_modules.bodyclasses import WheeledVehicle
 
@@ -23,28 +24,12 @@ class BaseVehicle(WheeledVehicle):
     def __init__(self, namespace, vehicle_id, simulation_rate,
                  x=0., y=0., yaw=0., v=0.):
         """Initialize class BaseVehicle."""
-        rospy.Subscriber(namespace + 'sensor_readings', String,
-                         self.process_sensor_readings)
-        rospy.Subscriber(namespace + 'receivable_com', String,
-                         self.process_receivable_com)
+        self.launcher = ROSLaunch()
+        self.launcher.start()
 
-        self.pub_state = rospy.Publisher('/current_vehicle_state',
-                                         VehicleState, queue_size=10)
+        self.namespace = namespace
 
-        rospy.Service(namespace + 'set_state', SetVehicleState,
-                      self.handle_set_state)
-        rospy.Service(namespace + 'set_speed_kph', SetSpeed,
-                      self.handle_set_speed_kph)
-        rospy.Service(namespace + 'set_loop', SetLoop, self.handle_set_loop)
-        rospy.Service(namespace + 'set_destination', SetDestination,
-                      self.handle_set_destination)
-        rospy.Service(namespace + 'toggle_simulation', SetBool,
-                      self.handle_toggle_simulation)
-        # rospy.wait_for_service(namespace + '/publish_com')
-        # self.publish_com = rospy.ServiceProxy(namespace + '/publish_com',
-        #                                       PublishCom)
-
-        self.vehicle_id = vehicle_id
+        self.vehicle_id = int(vehicle_id)
         self.class_name = self.__class__.__name__
         self.simulation_rate = simulation_rate
 
@@ -64,6 +49,25 @@ class BaseVehicle(WheeledVehicle):
         sim_thread.daemon = True
         sim_thread.start()
 
+        # Register all services, pubs and subs last to prevent attempts to use
+        # the services before the initialization of the vehicle is finished.
+        self.pub_state = rospy.Publisher('/current_vehicle_state',
+                                         VehicleState, queue_size=10)
+
+        rospy.Service(self.namespace + 'set_state', SetVehicleState,
+                      self.handle_set_state)
+        rospy.Service(self.namespace + 'set_speed_kph', SetSpeed,
+                      self.handle_set_speed_kph)
+        rospy.Service(self.namespace + 'set_loop', SetLoop,
+                      self.handle_set_loop)
+        rospy.Service(self.namespace + 'set_destination', SetDestination,
+                      self.handle_set_destination)
+        rospy.Service(self.namespace + 'toggle_simulation', SetBool,
+                      self.handle_toggle_simulation)
+        # rospy.wait_for_service(self.namespace + '/publish_com')
+        # self.publish_com = rospy.ServiceProxy(self.namespace + 'publish_com',
+        #                                       PublishCom)
+
     def simulation_loop(self):
         """The simulation loop of the car."""
         rate = rospy.Rate(self.simulation_rate)
@@ -72,9 +76,6 @@ class BaseVehicle(WheeledVehicle):
             # Simulate only if the simulate flat is set.
             if self.simulate:
                 self.simulation_step()
-                vehicle_state = VehicleState(self.vehicle_id, self.class_name,
-                                             self.x, self.y, self.yaw)
-                self.pub_state.publish(vehicle_state)
             # Check if simulatio rate could be achieved or not.
             if rate.remaining() < rospy.Duration(0):
                 rospy.logwarn("Simulation rate of vehicle " +
@@ -99,6 +100,9 @@ class BaseVehicle(WheeledVehicle):
         # update vehicle state.
         self.update_vehicle_state()
         # publish vehicle state.
+        vehicle_state = VehicleState(self.vehicle_id, self.class_name,
+                                     self.x, self.y, self.yaw, self.v)
+        self.pub_state.publish(vehicle_state)
 
     def find_closest_trajectory_pose(self):
         """
@@ -154,6 +158,23 @@ class BaseVehicle(WheeledVehicle):
             self.yaw = 0.
         elif self.yaw < 0.:
             self.yaw += 2*numpy.pi
+
+    def launch_sensors(self):
+        """Launch and register the sensors used by the vehicle."""
+        # Go through sensor list.
+        for sensor in self.sensors:
+            # Launch sensor node.
+            sensor_name = sensor.partition(' ')[0]
+            subpub_name = sensor_name.lower()+'_readings'
+            args = str(self.vehicle_id)+' '+sensor
+            node = Node('sml_world', 'sensor.py', namespace=self.namespace,
+                        args=args, name=subpub_name)
+            self.launcher.launch(node)
+            # Register subscriptions for each of them.
+            rospy.Subscriber(self.namespace + subpub_name,
+                             getattr(msgs, sensor_name+'Readings'),
+                             getattr(self, 'process_'+subpub_name))
+        pass
 
     def process_sensor_readings(self, data):
         """Process all sensor readings."""
@@ -249,3 +270,45 @@ def to_numpy_trajectory(trajectory):
         ty.append(pose.y)
         tyaw.append(pose.yaw)
     return numpy.asarray([tx, ty, tyaw])
+
+
+class DummyVehicle(BaseVehicle):
+    """Class for the dummy vehicle."""
+
+    def __init__(self, namespace, vehicle_id, simulation_rate,
+                 x=0., y=0., yaw=0., v=0.):
+        """Initialize class DummyVehicle."""
+        super(DummyVehicle, self).__init__(namespace, vehicle_id,
+                                           simulation_rate, x, y, yaw, v)
+        self.sensors = ['Radar 35 10']
+        self.radar_readings = numpy.asarray([[], [], []])
+        self.launch_sensors()
+
+    def set_control_commands(self, ref_state):
+        """Set the control commands, depending on the vehicles controler."""
+        super(DummyVehicle, self).set_control_commands(ref_state)
+        safety_distance = 10.
+        full_stop_distance = 6.
+        # Analyze radar readings.
+        if not numpy.any(self.radar_readings[0, :]):
+            return
+        min_dist = numpy.min(self.radar_readings[0, :])
+        # Set speed.
+        if min_dist < full_stop_distance:
+            desired_speed = 0.
+        elif min_dist < safety_distance:
+            desired_speed = self.v * min_dist / safety_distance
+        else:
+            desired_speed = self.v
+        print "->", desired_speed
+        self.commands['speed'] = desired_speed
+
+    def process_radar_readings(self, rr):
+        """Process all sensor readings."""
+        # Write sensor readings in an ndarray
+        self.radar_readings = numpy.asarray([[], [], []])
+        for r in rr.registered_vehicles:
+            self.radar_readings = numpy.concatenate(
+                                    (self.radar_readings,
+                                     [[r.rho], [r.theta], [r.yaw]]),
+                                    axis=1)

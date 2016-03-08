@@ -50,6 +50,8 @@ add_message_files(
   VehicleState.msg
   WorldState.msg
   Pose2D.msg
+  Pose2DPolar.msg
+  RadarReadings.msg
 )
 
 ## Generate services in the 'srv' folder
