@@ -3,7 +3,9 @@ SETUP
    => http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment
 2. Go to the 'src' folder of your catkin workspace. 
 3. Clone git repository
-        git clone <git-repository url>
+        git init
+        git remote add origin <git-repository url>
+        git pull origin master
 4. Set git configurations:
         git config --global user.name <username>
         git config --global user.email <email>
