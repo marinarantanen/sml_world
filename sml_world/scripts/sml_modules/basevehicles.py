@@ -1,4 +1,12 @@
-"""Base classes for simulated vehicles."""
+"""
+Module containing classes for all simulated vehicles.
+
+Created on Mar 5, 2016
+
+@author: U{David Spulak<spulak@kth.se>}
+@organization: KTH
+"""
+
 import numpy
 import threading
 
@@ -19,11 +27,36 @@ from sml_modules.bodyclasses import WheeledVehicle
 
 
 class BaseVehicle(WheeledVehicle):
-    """Base class for all vehicles."""
+    """
+    Base class for all vehicles.
+
+    Other vehicles inherit from this class and can use/overwrite its
+    functions.  It provides the following basic services:
+        - /set_state: Set the vehicle state.
+        - /set_speed_kph: Set the vehicles speed in kilometers per hour.
+        - /set_loop: Set a closed loop trajectory from a certain node.
+        - /set_destination: Set a trajectory to a certain destination node.
+        - /toggle_simulation: Toggle the simulation of the vehicle on/off.
+
+    The launch_sensor function can be called from child classes to launch
+    the sensor nodes that are listed in their class variable self.sensors.
+    """
 
     def __init__(self, namespace, vehicle_id, simulation_rate,
                  x=0., y=0., yaw=0., v=0.):
-        """Initialize class BaseVehicle."""
+        """
+        Initialize class BaseVehicle.
+
+        @param namespace: I{(string)} Namespace in which the vehicle node is
+                          started.
+        @param vehicle_id: I{(int)} ID of the vehicle that is created.
+        @param simulation_rate: I{(int)} Rate at which the vehicle is
+                                simulated (hz)
+        @param x: I{(float)} x-coordinate at which the vehicle starts.
+        @param y: I{(float)} y-coordinate at which the vehicle starts.
+        @param yaw: I{(float)} Initial yaw of the vehicle.
+        @param v: I{(float)} Initial velocity of the vehicle.
+        """
         self.launcher = ROSLaunch()
         self.launcher.start()
 
@@ -119,7 +152,12 @@ class BaseVehicle(WheeledVehicle):
         return best_idx
 
     def set_control_commands(self, ref_state):
-        """Set the control commands, depending on the vehicles controler."""
+        """
+        Set the control commands, depending on the vehicles controler.
+
+        @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
+                          the vehicle tries to reach.
+        """
         self.commands['speed'] = self.v
         dx = ref_state[0] - self.x
         dy = ref_state[1] - self.y
@@ -175,14 +213,6 @@ class BaseVehicle(WheeledVehicle):
                              getattr(msgs, sensor_name+'Readings'),
                              getattr(self, 'process_'+subpub_name))
         pass
-
-    def process_sensor_readings(self, data):
-        """Process all sensor readings."""
-        print data.data
-
-    def process_receivable_com(self, data):
-        """Process the receivable communication."""
-        print data.data
 
     def handle_set_state(self, req):
         """
@@ -261,7 +291,14 @@ class BaseVehicle(WheeledVehicle):
 
 
 def to_numpy_trajectory(trajectory):
-    """Transform Pose2D[] message to numpy array."""
+    """
+    Transform Pose2D[] message to numpy array.
+
+    @param trajectory: I{(Pose2D[])} ROS message of vehicle trajectory.
+
+    @return: I{(numpy array)} Numpy array representation of the trajectory.
+             [[x], [y], [yaw]]
+    """
     tx = []
     ty = []
     tyaw = []
@@ -285,7 +322,12 @@ class DummyVehicle(BaseVehicle):
         self.launch_sensors()
 
     def set_control_commands(self, ref_state):
-        """Set the control commands, depending on the vehicles controler."""
+        """
+        Set the control commands, depending on the vehicles controler.
+
+        @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
+                          the vehicle tries to reach.
+        """
         super(DummyVehicle, self).set_control_commands(ref_state)
         safety_distance = 10.
         full_stop_distance = 6.
@@ -304,7 +346,12 @@ class DummyVehicle(BaseVehicle):
         self.commands['speed'] = desired_speed
 
     def process_radar_readings(self, rr):
-        """Process all sensor readings."""
+        """
+        Put all sensor readings into a numpy array.
+
+        @param rr: I{(RadarReadings)} Radar readings message that needs to
+                   be put into the class variable radar_readings.
+        """
         # Write sensor readings in an ndarray
         self.radar_readings = numpy.asarray([[], [], []])
         for r in rr.registered_vehicles:

@@ -33,7 +33,7 @@ class RoadModuleExtend(RoadModule):
         """
         Initialize the class RoadModule_new.
 
-        @param file_location: I{str} Relative location of the .xml file
+        @param file_location: I{(str)} Relative location of the .xml file
                               containing the road network information.
         """
         base_path = os.path.dirname(__file__)
@@ -44,8 +44,8 @@ class RoadModuleExtend(RoadModule):
         """
         Handle the map location request.
 
-        @param req: I{GetMapLocation} Request of the service that provides the
-                    map location to client.
+        @param req: I{(GetMapLocation)} Request of the service that provides
+                    the map location to client.
         """
         return GetMapLocationResponse(self.base_path, self.map_location)
 
@@ -53,7 +53,7 @@ class RoadModuleExtend(RoadModule):
         """
         Handle the get trajectory request.
 
-        @param req: I{GetTrajectory} Request of the service that provides a
+        @param req: I{(GetTrajectory)} Request of the service that provides a
                     trajectory to follow.
         """
         if req.loop:
@@ -85,7 +85,12 @@ class RoadModuleExtend(RoadModule):
 
 
 def road_network(file_location):
-    """Initialize ROS-node 'road_network' and start the services."""
+    """
+    Initialize ROS-node 'road_network' and start the services.
+
+    @param file_location: I{(str)} Location of the road network description
+                          that should be loaded.
+    """
     road_module = RoadModuleExtend(file_location)
 
     rospy.init_node('road_network')

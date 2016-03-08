@@ -20,8 +20,8 @@ def update_state(ws, vis_module):
     """
     Callback function for topic 'world_state'.
 
-    @param ws: I{WorldState} ROS-message of the world state.
-    @param vis_module: I{VisualisationModule} The initialized visualization
+    @param ws: I{(WorldState)} ROS-message of the world state.
+    @param vis_module: I{(VisualisationModule)} The initialized visualization
                        module used to show the current state of the simulation.
 
     @todo: Integrate ROS-messages for the world state.
@@ -41,7 +41,7 @@ def visualizer(vis_module):
     """
     Initialize ROS-node 'visualizer' and start subscriber to 'world_state'.
 
-    @param vis_module: I{VisualisationModule} The initialized visualization
+    @param vis_module: I{(VisualisationModule)} The initialized visualization
                        module used to show the current state of the simulation.
     """
     rospy.init_node('visualizer')
