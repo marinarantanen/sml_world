@@ -344,7 +344,6 @@ class DummyVehicle(BaseVehicle):
             desired_speed = self.cruising_speed * min_dist / safety_distance
         else:
             desired_speed = self.cruising_speed
-        print "->", desired_speed
         self.commands['speed'] = desired_speed
 
     def process_radar_readings(self, rr):
