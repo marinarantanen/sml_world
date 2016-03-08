@@ -27,7 +27,20 @@ from sml_modules.bodyclasses import WheeledVehicle
 
 
 class BaseVehicle(WheeledVehicle):
-    """Base class for all vehicles."""
+    """
+    Base class for all vehicles.
+
+    Other vehicles inherit from this class and can use/overwrite its
+    functions.  It provides the following basic services:
+        - /set_state: Set the vehicle state.
+        - /set_speed_kph: Set the vehicles speed in kilometers per hour.
+        - /set_loop: Set a closed loop trajectory from a certain node.
+        - /set_destination: Set a trajectory to a certain destination node.
+        - /toggle_simulation: Toggle the simulation of the vehicle on/off.
+
+    The launch_sensor function can be called from child classes to launch
+    the sensor nodes that are listed in their class variable self.sensors.
+    """
 
     def __init__(self, namespace, vehicle_id, simulation_rate,
                  x=0., y=0., yaw=0., v=0.):
