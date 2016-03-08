@@ -1,4 +1,11 @@
-"""Sensor module."""
+"""
+Module containing all available sensor classes.
+
+Created on Mar 6, 2016
+
+@author: U{David Spulak<spulak@kth.se>}
+@organization: KTH
+"""
 
 import numpy as np
 
@@ -10,10 +17,19 @@ from std_msgs.msg import String
 
 
 class BaseSensor(object):
-    """Base class for sensors."""
+    """
+    Base class for sensors.
+
+    New sensors inherit from this class which implements the subsciption
+    to the world state and the processing of this subscription.
+    """
 
     def __init__(self, vehicle_id):
-        """Initialize class BaseSensor."""
+        """
+        Initialize class BaseSensor.
+
+        @param vehicle_id: I{(int)} ID of the vehicle this sensor belongs to.
+        """
         self.vehicle_id = int(vehicle_id)
         self.vehicle_states = np.asarray([[], [], [], [], []])
         rospy.Subscriber('/world_state', WorldState, self.update_state)
@@ -33,7 +49,15 @@ class Radar(BaseSensor):
     """Radar sensor class."""
 
     def __init__(self, vehicle_id, name, sens_range, sens_angle):
-        """Initialize Radar sensor class."""
+        """
+        Initialize Radar sensor class.
+
+        @param vehicle_id: I{(int)} ID of the vehicle this sensor belongs to.
+        @param name: I{(str)} Name of the sensor under which it will publish
+                     its readings.
+        @param sens_range: I{(float)} Range of the randar sensor.
+        @param sens_angle: I{(float)} Opening angle of the radar sensor.
+        """
         super(Radar, self).__init__(vehicle_id)
         self.name = name
         self.sens_range = float(sens_range)
@@ -82,7 +106,14 @@ class Velodyne(BaseSensor):
     """Radar sensor class."""
 
     def __init__(self, vehicle_id, name, sens_range):
-        """Initialize Velodyne sensor class."""
+        """
+        Initialize Velodyne sensor class.
+
+        @param vehicle_id: I{(int)} ID of the vehicle this sensor belongs to.
+        @param name: I{(str)} Name of the sensor under which it will publish
+                     its readings.
+        @param sens_range: I{(float)} Range of the velodyne sensor.
+        """
         super(Radar, self).__init__(vehicle_id)
         self.name = name
         self.sens_range = sens_range
@@ -98,7 +129,13 @@ class Omniscient(BaseSensor):
     """Omnicient sensor class."""
 
     def __init__(self, vehicle_id, name):
-        """Initialize Oniscient sensor class."""
+        """
+        Initialize Oniscient sensor class.
+
+        @param vehicle_id: I{(int)} ID of the vehicle this sensor belongs to.
+        @param name: I{(str)} Name of the sensor under which it will publish
+                     its readings.
+        """
         super(Omniscient, self).__init__(vehicle_id)
         self.name = name
         self.pub_readings = rospy.Publisher(self.name, String,
