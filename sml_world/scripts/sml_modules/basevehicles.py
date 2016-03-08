@@ -23,7 +23,19 @@ class BaseVehicle(WheeledVehicle):
 
     def __init__(self, namespace, vehicle_id, simulation_rate,
                  x=0., y=0., yaw=0., v=0.):
-        """Initialize class BaseVehicle."""
+        """
+        Initialize class BaseVehicle.
+
+        @param namespace: I{(string)} Namespace in which the vehicle node is
+                          started.
+        @param vehicle_id: I{(int)} ID of the vehicle that is created.
+        @param simulation_rate: I{(int)} Rate at which the vehicle is
+                                simulated (hz)
+        @param x: I{(float)} x-coordinate at which the vehicle starts.
+        @param y: I{(float)} y-coordinate at which the vehicle starts.
+        @param yaw: I{(float)} Initial yaw of the vehicle.
+        @param v: I{(float)} Initial velocity of the vehicle.
+        """
         self.launcher = ROSLaunch()
         self.launcher.start()
 
@@ -119,7 +131,12 @@ class BaseVehicle(WheeledVehicle):
         return best_idx
 
     def set_control_commands(self, ref_state):
-        """Set the control commands, depending on the vehicles controler."""
+        """
+        Set the control commands, depending on the vehicles controler.
+
+        @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
+                          the vehicle tries to reach.
+        """
         self.commands['speed'] = self.v
         dx = ref_state[0] - self.x
         dy = ref_state[1] - self.y
@@ -253,7 +270,14 @@ class BaseVehicle(WheeledVehicle):
 
 
 def to_numpy_trajectory(trajectory):
-    """Transform Pose2D[] message to numpy array."""
+    """
+    Transform Pose2D[] message to numpy array.
+
+    @param trajectory: I{(Pose2D[])} ROS message of vehicle trajectory.
+
+    @return: I{(numpy array)} Numpy array representation of the trajectory.
+             [[x], [y], [yaw]]
+    """
     tx = []
     ty = []
     tyaw = []
@@ -277,7 +301,12 @@ class DummyVehicle(BaseVehicle):
         self.launch_sensors()
 
     def set_control_commands(self, ref_state):
-        """Set the control commands, depending on the vehicles controler."""
+        """
+        Set the control commands, depending on the vehicles controler.
+
+        @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
+                          the vehicle tries to reach.
+        """
         super(DummyVehicle, self).set_control_commands(ref_state)
         safety_distance = 10.
         full_stop_distance = 6.
@@ -296,7 +325,12 @@ class DummyVehicle(BaseVehicle):
         self.commands['speed'] = desired_speed
 
     def process_radar_readings(self, rr):
-        """Process all sensor readings."""
+        """
+        Put all sensor readings into a numpy array.
+
+        @param rr: I{(RadarReadings)} Radar readings message that needs to
+                   be put into the class variable radar_readings.
+        """
         # Write sensor readings in an ndarray
         self.radar_readings = numpy.asarray([[], [], []])
         for r in rr.registered_vehicles:
