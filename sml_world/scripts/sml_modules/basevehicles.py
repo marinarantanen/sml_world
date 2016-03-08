@@ -81,9 +81,6 @@ class BaseVehicle(WheeledVehicle):
             # Simulate only if the simulate flat is set.
             if self.simulate:
                 self.simulation_step()
-                vehicle_state = VehicleState(self.vehicle_id, self.class_name,
-                                             self.x, self.y, self.yaw, self.v)
-                self.pub_state.publish(vehicle_state)
             # Check if simulatio rate could be achieved or not.
             if rate.remaining() < rospy.Duration(0):
                 rospy.logwarn("Simulation rate of vehicle " +
@@ -108,6 +105,9 @@ class BaseVehicle(WheeledVehicle):
         # update vehicle state.
         self.update_vehicle_state()
         # publish vehicle state.
+        vehicle_state = VehicleState(self.vehicle_id, self.class_name,
+                                     self.x, self.y, self.yaw, self.v)
+        self.pub_state.publish(vehicle_state)
 
     def find_closest_trajectory_pose(self):
         """
