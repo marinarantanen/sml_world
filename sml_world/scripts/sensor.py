@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Vehicle node of the SML-World.
+Sensor node of the SML-World.
 
-Created on Mar 3, 2016
+Created on Mar 6, 2016
 
 @author: U{David Spulak<spulak@kth.se>}
 @organization: KTH
