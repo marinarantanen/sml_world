@@ -22,6 +22,12 @@ def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
     @param vehicle_id: I{(int)} ID of the vehicle that is created.
     @param vehicle_class: I{(str)} Name of the vehicle class that should be
                           created.
+    @param x: I{(float)} x-coordinate at which the vehicle should be spawned.
+    @param y: I{(float)} y-coordinate at which the vehicle should be spawned.
+    @param yaw: I{(float)} Initial yaw with which the vehicle should be
+                spawned.
+    @param speed_in_ms: I{(float)} Initial speed whith which the vehicle
+                        should be spawned.
     """
     rospy.init_node('vehicle', log_level=rospy.WARN)
     if vehicle_class == BaseVehicle.__name__:
