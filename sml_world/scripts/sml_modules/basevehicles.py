@@ -73,6 +73,7 @@ class BaseVehicle(WheeledVehicle):
         self.y = y
         self.yaw = yaw
         self.v = v
+        self.cruising_speed = v
         self.axles_distance = 1.9
         self.np_trajectory = []
         self.commands = {}
@@ -158,7 +159,7 @@ class BaseVehicle(WheeledVehicle):
         @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
                           the vehicle tries to reach.
         """
-        self.commands['speed'] = self.v
+        self.commands['speed'] = self.cruising_speed
         dx = ref_state[0] - self.x
         dy = ref_state[1] - self.y
         dx_v = numpy.cos(self.yaw) * dx + numpy.sin(self.yaw) * dy
@@ -182,6 +183,7 @@ class BaseVehicle(WheeledVehicle):
         """Update the vehicle state."""
         sim_timestep = 1. / self.simulation_rate
         # Decompose v into x and y component.
+        self.v = self.commands['speed']
         vx = numpy.cos(self.yaw) * self.v
         vy = numpy.sin(self.yaw) * self.v
         # Update vehicles position
@@ -235,7 +237,7 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetSpeed)} Request of the service that sets the vehicles
                     cruising speed in kmh.
         """
-        self.v = req.speed / 3.6
+        self.cruising_speed = req.speed / 3.6
         msg = "Speed of vehicle #%i successfully set." % self.vehicle_id
         return SetSpeedResponse(True, msg)
 
@@ -339,9 +341,9 @@ class DummyVehicle(BaseVehicle):
         if min_dist < full_stop_distance:
             desired_speed = 0.
         elif min_dist < safety_distance:
-            desired_speed = self.v * min_dist / safety_distance
+            desired_speed = self.cruising_speed * min_dist / safety_distance
         else:
-            desired_speed = self.v
+            desired_speed = self.cruising_speed
         print "->", desired_speed
         self.commands['speed'] = desired_speed
 
