@@ -270,3 +270,45 @@ def to_numpy_trajectory(trajectory):
         ty.append(pose.y)
         tyaw.append(pose.yaw)
     return numpy.asarray([tx, ty, tyaw])
+
+
+class DummyVehicle(BaseVehicle):
+    """Class for the dummy vehicle."""
+
+    def __init__(self, namespace, vehicle_id, simulation_rate,
+                 x=0., y=0., yaw=0., v=0.):
+        """Initialize class DummyVehicle."""
+        super(DummyVehicle, self).__init__(namespace, vehicle_id,
+                                           simulation_rate, x, y, yaw, v)
+        self.sensors = ['Radar 35 10']
+        self.radar_readings = numpy.asarray([[], [], []])
+        self.launch_sensors()
+
+    def set_control_commands(self, ref_state):
+        """Set the control commands, depending on the vehicles controler."""
+        super(DummyVehicle, self).set_control_commands(ref_state)
+        safety_distance = 10.
+        full_stop_distance = 6.
+        # Analyze radar readings.
+        if not numpy.any(self.radar_readings[0, :]):
+            return
+        min_dist = numpy.min(self.radar_readings[0, :])
+        # Set speed.
+        if min_dist < full_stop_distance:
+            desired_speed = 0.
+        elif min_dist < safety_distance:
+            desired_speed = self.v * min_dist / safety_distance
+        else:
+            desired_speed = self.v
+        print "->", desired_speed
+        self.commands['speed'] = desired_speed
+
+    def process_radar_readings(self, rr):
+        """Process all sensor readings."""
+        # Write sensor readings in an ndarray
+        self.radar_readings = numpy.asarray([[], [], []])
+        for r in rr.registered_vehicles:
+            self.radar_readings = numpy.concatenate(
+                                    (self.radar_readings,
+                                     [[r.rho], [r.theta], [r.yaw]]),
+                                    axis=1)
