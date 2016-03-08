@@ -12,8 +12,7 @@ import os
 import math
 
 from sml_modules import bodyclasses
-from sml_modules.vehicle_models import DummyVehicle
-from sml_modules.basevehicles import BaseVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle
 
 
 class Visualization:
