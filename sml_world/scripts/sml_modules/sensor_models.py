@@ -1,6 +1,6 @@
 """Sensor module."""
 
-import numpy
+import numpy as np
 
 import rospy
 from sml_world.msg import WorldState
@@ -14,14 +14,14 @@ class BaseSensor(object):
     def __init__(self, vehicle_id):
         """Initialize class BaseSensor."""
         self.vehicle_id = int(vehicle_id)
-        self.vehicle_states = numpy.asarray([[], [], [], [], []])
+        self.vehicle_states = np.asarray([[], [], [], [], []])
         rospy.Subscriber('/world_state', WorldState, self.update_state)
 
     def update_state(self, ws):
         """Callback function for topic 'world_state'."""
-        self.vehicle_states = numpy.asarray([[], [], [], [], []])
+        self.vehicle_states = np.asarray([[], [], [], [], []])
         for vs in ws.vehicle_states:
-            self.vehicle_states = numpy.concatenate(
+            self.vehicle_states = np.concatenate(
                                         (self.vehicle_states,
                                          [[vs.vehicle_id], [vs.x], [vs.y],
                                           [vs.yaw], [vs.v]]),
