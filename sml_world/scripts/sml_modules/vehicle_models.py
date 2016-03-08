@@ -69,6 +69,7 @@ class BaseVehicle(WheeledVehicle):
         # Set parameters of base vehicle to default values.
         self.simulate = False
         self.sensors = []
+        self.coms = []
         self.x = x
         self.y = y
         self.yaw = yaw
@@ -214,7 +215,20 @@ class BaseVehicle(WheeledVehicle):
             rospy.Subscriber(self.namespace + subpub_name,
                              getattr(msgs, sensor_name+'Readings'),
                              getattr(self, 'process_'+subpub_name))
-        pass
+
+    def launch_coms(self):
+        """Launch and register the communications used by the vehicle."""
+        for com in self.coms:
+            com_name = com.partition(' ')[0]
+            subpub_name = sensor_name.lower()+'_received'
+            args = str(self.vehicle.id)+' '+com
+            node = Node('sml_world', 'communication.py',
+                        namespace=self.namespace, args=args, name=subpub_name)
+            self.launcher.launch(node)
+            # Register subscriptions for each of them.
+            rospy.Subscriber(self.namespace + subpub_name,
+                             getattr(msgs, sensor_name+'Readings'),
+                             getattr(self, 'process_'+subpub_name))
 
     def handle_set_state(self, req):
         """
@@ -320,8 +334,10 @@ class DummyVehicle(BaseVehicle):
         super(DummyVehicle, self).__init__(namespace, vehicle_id,
                                            simulation_rate, x, y, yaw, v)
         self.sensors = ['Radar 35 10']
+        self.coms = ['Wifi 50']
         self.radar_readings = numpy.asarray([[], [], []])
         self.launch_sensors()
+        self.launch_coms()
 
     def set_control_commands(self, ref_state):
         """
