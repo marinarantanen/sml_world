@@ -12,7 +12,7 @@ import sys
 
 import rospy
 
-from sml_modules.basevehicles import BaseVehicle, DummyVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle
 
 
 def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
