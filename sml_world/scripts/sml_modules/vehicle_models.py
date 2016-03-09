@@ -21,6 +21,7 @@ from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
 from sml_world.srv import GetTrajectory
+from sml_world.srv import SendWifiCom
 # from sml_world.srv import PublishCom
 
 from sml_modules.bodyclasses import WheeledVehicle
@@ -69,6 +70,7 @@ class BaseVehicle(WheeledVehicle):
         # Set parameters of base vehicle to default values.
         self.simulate = False
         self.sensors = []
+        self.coms = []
         self.x = x
         self.y = y
         self.yaw = yaw
@@ -208,13 +210,28 @@ class BaseVehicle(WheeledVehicle):
             subpub_name = sensor_name.lower()+'_readings'
             args = str(self.vehicle_id)+' '+sensor
             node = Node('sml_world', 'sensor.py', namespace=self.namespace,
-                        args=args, name=subpub_name)
+                        args=args, name=sensor_name.lower())
             self.launcher.launch(node)
             # Register subscriptions for each of them.
             rospy.Subscriber(self.namespace + subpub_name,
                              getattr(msgs, sensor_name+'Readings'),
                              getattr(self, 'process_'+subpub_name))
-        pass
+
+    def launch_coms(self):
+        """Launch and register the communications used by the vehicle."""
+        # Go through list of comunication.
+        for com in self.coms:
+            com_name = com.partition(' ')[0]
+            subpub_name = com_name.lower()+'_com'
+            args = str(self.vehicle_id)+' '+com
+            node = Node('sml_world', 'communication.py',
+                        namespace=self.namespace, args=args,
+                        name=com_name.lower())
+            self.launcher.launch(node)
+            # Register subscriptions for each of them.
+            rospy.Subscriber(self.namespace + subpub_name,
+                             getattr(msgs, com_name+'Com'),
+                             getattr(self, 'process_'+subpub_name))
 
     def handle_set_state(self, req):
         """
@@ -360,3 +377,34 @@ class DummyVehicle(BaseVehicle):
                                     (self.radar_readings,
                                      [[r.rho], [r.theta], [r.yaw]]),
                                     axis=1)
+
+
+class WifiVehicle(DummyVehicle):
+    """
+    Class for the wifi vehicle.
+
+    This vehicle does nothing more than the DummyVehicle, except
+    printing its wifi communication.
+    """
+
+    def __init__(self, namespace, vehicle_id, simulation_rate,
+                 x=0., y=0., yaw=0., v=0.):
+        """Initialize class WifiVehicle."""
+        super(WifiVehicle, self).__init__(namespace, vehicle_id,
+                                          simulation_rate, x, y, yaw, v)
+        self.coms = ['Wifi 50']
+        self.launch_coms()
+
+    def simulation_step(self):
+        """Simulate one timestep of the car."""
+        rospy.wait_for_service("send_wifi_com")
+        try:
+            send_wifi = rospy.ServiceProxy("send_wifi_com", SendWifiCom)
+            send_wifi("I am vehicle #%i" % self.vehicle_id)
+        except rospy.ServiceException, e:
+            raise "Service call failed: %s" % e
+        super(WifiVehicle, self).simulation_step()
+
+    def process_wifi_com(self, wm):
+        """Process messages received over wifi."""
+        print wm.message

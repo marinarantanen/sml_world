@@ -52,9 +52,9 @@ def visualizer(vis_module):
 
 if __name__ == '__main__':
     # Request the map location.
-    rospy.wait_for_service('get_map_location')
+    rospy.wait_for_service('/get_map_location')
     try:
-        get_map = rospy.ServiceProxy('get_map_location', GetMapLocation)
+        get_map = rospy.ServiceProxy('/get_map_location', GetMapLocation)
         resp = get_map()
         base_path = resp.base_path
         map_location = resp.map_location

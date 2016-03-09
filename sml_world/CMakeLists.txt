@@ -52,6 +52,7 @@ add_message_files(
   Pose2D.msg
   Pose2DPolar.msg
   RadarReadings.msg
+  WifiCom.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -65,6 +66,7 @@ add_service_files(
   SetDestination.srv
   SetBool.srv
   SpawnVehicle.srv
+  SendWifiCom.srv
 )
 
 ## Generate actions in the 'action' folder

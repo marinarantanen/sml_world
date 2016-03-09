@@ -62,8 +62,8 @@ class Radar(BaseSensor):
         self.name = name
         self.sens_range = float(sens_range)
         self.sens_angle = float(sens_angle) * np.pi/180.
-        self.pub_readings = rospy.Publisher(self.name, RadarReadings,
-                                            queue_size=10)
+        self.pub_readings = rospy.Publisher(self.name+'_readings',
+                                            RadarReadings, queue_size=10)
 
     def publish_readings(self):
         """Publish the sensor readings."""
