@@ -12,7 +12,7 @@ import os
 import math
 
 from sml_modules import bodyclasses
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, WifiVehicle
 
 
 class Visualization:
@@ -594,7 +594,8 @@ class Visualization:
                 self.draw_small_box(vehicle['x'], vehicle['y'], vehicle['yaw'])
 
             elif (vehicle_class_name == DummyVehicle.__name__ or
-                  vehicle_class_name == BaseVehicle.__name__):
+                  vehicle_class_name == BaseVehicle.__name__ or
+                  vehicle_class_name == WifiVehicle.__name__):
                 if vehicle_id > -100:
                     color = vehicle_id % 5
 

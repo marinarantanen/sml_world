@@ -21,6 +21,7 @@ from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
 from sml_world.srv import GetTrajectory
+from sml_world.srv import SendWifiCom
 # from sml_world.srv import PublishCom
 
 from sml_modules.bodyclasses import WheeledVehicle
@@ -336,10 +337,8 @@ class DummyVehicle(BaseVehicle):
         super(DummyVehicle, self).__init__(namespace, vehicle_id,
                                            simulation_rate, x, y, yaw, v)
         self.sensors = ['Radar 35 10']
-        self.coms = ['Wifi 50']
         self.radar_readings = numpy.asarray([[], [], []])
         self.launch_sensors()
-        self.launch_coms()
 
     def set_control_commands(self, ref_state):
         """
@@ -379,6 +378,33 @@ class DummyVehicle(BaseVehicle):
                                      [[r.rho], [r.theta], [r.yaw]]),
                                     axis=1)
 
-    def process_wifi_msgs(self, wm):
+
+class WifiVehicle(DummyVehicle):
+    """
+    Class for the wifi vehicle.
+
+    This vehicle does nothing more than the DummyVehicle, except
+    printing its wifi communication.
+    """
+
+    def __init__(self, namespace, vehicle_id, simulation_rate,
+                 x=0., y=0., yaw=0., v=0.):
+        """Initialize class WifiVehicle."""
+        super(WifiVehicle, self).__init__(namespace, vehicle_id,
+                                          simulation_rate, x, y, yaw, v)
+        self.coms = ['Wifi 50']
+        self.launch_coms()
+
+    def simulation_step(self):
+        """Simulate one timestep of the car."""
+        rospy.wait_for_service("send_wifi_com")
+        try:
+            send_wifi = rospy.ServiceProxy("send_wifi_com", SendWifiCom)
+            send_wifi("I am vehicle #%i" % self.vehicle_id)
+        except rospy.ServiceException, e:
+            raise "Service call failed: %s" % e
+        super(WifiVehicle, self).simulation_step()
+
+    def process_wifi_com(self, wm):
         """Process messages received over wifi."""
-        pass
+        print wm.message
