@@ -17,6 +17,7 @@ import rospy
 from sml_world.msg import Pose2D
 from sml_world.srv import GetMapLocation, GetMapLocationResponse
 from sml_world.srv import GetTrajectory, GetTrajectoryResponse
+from sml_world.srv import GetNearestNodeId, GetNearestNodeIdResponse
 
 from sml_modules.road_module.RoadModule import RoadModule
 
@@ -39,6 +40,9 @@ class RoadModuleExtend(RoadModule):
         base_path = os.path.dirname(__file__)
         self.map_location = file_location
         super(RoadModuleExtend, self).__init__(base_path, file_location)
+        self.xy_to_node = {(n_osm.x, n_osm.y): n_id for n_osm, n_id
+                           in zip(self.osm_node_dict.values(),
+                                  self.osm_node_dict.keys())}
 
     def handle_get_map_location(self, req):
         """
@@ -83,6 +87,23 @@ class RoadModuleExtend(RoadModule):
             trajectory.append(Pose2D(x, y, yaw))
         return GetTrajectoryResponse(trajectory)
 
+    def handle_get_nearest_nodeid(self, req):
+        """
+        Get the node ID that is nearest to a vehicles location.
+
+        @param req: I{(GetNearestNodeId)} Request of the service that provides
+                    the ID of the node nearest to the sent coordinates.
+        """
+        min_dist = float('inf')
+        nearest_xy = None
+        for x, y in self.xy_to_node.keys():
+            min_dist_tmp = math.sqrt(math.pow(x-req.x, 2) +
+                                     math.pow(y-req.y, 2))
+            if min_dist > min_dist_tmp:
+                nearest_xy = (x, y)
+                min_dist = min_dist_tmp
+        return GetNearestNodeIdResponse(self.xy_to_node[nearest_xy])
+
 
 def road_network(file_location):
     """
@@ -94,10 +115,12 @@ def road_network(file_location):
     road_module = RoadModuleExtend(file_location)
 
     rospy.init_node('road_network')
-    rospy.Service('get_map_location', GetMapLocation,
+    rospy.Service('/get_map_location', GetMapLocation,
                   road_module.handle_get_map_location)
-    rospy.Service('get_trajectory', GetTrajectory,
+    rospy.Service('/get_trajectory', GetTrajectory,
                   road_module.handle_get_trajectory)
+    rospy.Service('/get_nearest_nodeid', GetNearestNodeId,
+                  road_module.handle_get_nearest_nodeid)
     rospy.spin()
 
 
