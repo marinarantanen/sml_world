@@ -60,6 +60,7 @@ add_service_files(
   FILES
   GetMapLocation.srv
   GetTrajectory.srv
+  GetNearestNodeId.srv
   SetVehicleState.srv
   SetSpeed.srv
   SetLoop.srv
