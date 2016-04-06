@@ -109,6 +109,11 @@ def road_network(file_location):
     """
     Initialize ROS-node 'road_network' and start the services.
 
+    The services provided include:
+        - get_map_location:  Returns the location of the map image.
+        - get_trajectory:  Returns the shortest trajectory between two nodes.
+        - get_nearest_nodeid:  Returns the node-ID nearest to coordinates.
+
     @param file_location: I{(str)} Location of the road network description
                           that should be loaded.
     """
