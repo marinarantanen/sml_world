@@ -12,6 +12,7 @@ Created on Feb 29, 2016
 import sys
 import os
 import math
+import numpy as np
 
 import rospy
 from sml_world.msg import Pose2D
@@ -40,9 +41,33 @@ class RoadModuleExtend(RoadModule):
         base_path = os.path.dirname(__file__)
         self.map_location = file_location
         super(RoadModuleExtend, self).__init__(base_path, file_location)
-        self.xy_to_node = {(n_osm.x, n_osm.y): n_id for n_osm, n_id
-                           in zip(self.osm_node_dict.values(),
-                                  self.osm_node_dict.keys())}
+        # Group all nodes of the road network to conneced sets
+        ll_nodes_dict = {self.osm_lanelet_dict.keys().index(ll_key):
+                         ll_ways.right_osm_way.node_ids for ll_key, ll_ways in
+                         self.osm_lanelet_dict.items()}
+        ad_mat = np.asmatrix(self.lanelet_adjacency_matrix)
+        ad_mat = 1/ad_mat + 1/ad_mat.T
+        ll_sets = [set(i) for i in np.argwhere(ad_mat > 0)]
+        ll_supersets = []
+        for ll_set in ll_sets:
+            overlap = False
+            for ll_superset in ll_supersets:
+                if ll_set & ll_superset:
+                    ll_superset |= ll_set
+                    overlap = True
+            if not overlap:
+                ll_supersets.append(ll_set)
+        # Create dictionary that connects nodes to their position.
+        node_to_xy = {n_id: (n_osm.x, n_osm.y) for n_id, n_osm
+                      in self.osm_node_dict.items()}
+        # Go through all supersets and group the connected lanelet-nodes.
+        self.connected_nodes = []
+        for ll_superset in ll_supersets:
+            nodes_dict = {}
+            for ll in ll_superset:
+                nodes_dict.update({n_id: node_to_xy[n_id] for
+                                   n_id in ll_nodes_dict[ll]})
+            self.connected_nodes.append(nodes_dict)
 
     def handle_get_map_location(self, req):
         """
@@ -94,15 +119,20 @@ class RoadModuleExtend(RoadModule):
         @param req: I{(GetNearestNodeId)} Request of the service that provides
                     the ID of the node nearest to the sent coordinates.
         """
+        # Find the connected node group that contains the destination node.
+        for node_list in self.connected_nodes:
+            if req.dest_id in node_list.keys():
+                break
+        # Then find the node in that group that is closest to the vehicle.
         min_dist = float('inf')
-        nearest_xy = None
-        for x, y in self.xy_to_node.keys():
+        nearest_id = None
+        for n_id, (x, y) in node_list.items():
             min_dist_tmp = math.sqrt(math.pow(x-req.x, 2) +
                                      math.pow(y-req.y, 2))
-            if min_dist > min_dist_tmp:
-                nearest_xy = (x, y)
+            if min_dist_tmp < min_dist:
+                nearest_id = n_id
                 min_dist = min_dist_tmp
-        return GetNearestNodeIdResponse(self.xy_to_node[nearest_xy])
+        return GetNearestNodeIdResponse(nearest_id)
 
 
 def road_network(file_location):
