@@ -20,7 +20,7 @@ from sml_world.srv import SetVehicleState, SetVehicleStateResponse
 from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
-from sml_world.srv import GetTrajectory
+from sml_world.srv import GetTrajectory, GetNearestNodeId
 from sml_world.srv import SendWifiCom
 # from sml_world.srv import PublishCom
 
@@ -80,6 +80,9 @@ class BaseVehicle(WheeledVehicle):
         self.np_trajectory = []
         self.commands = {}
 
+        self.loop = False
+        self.at_dest = False
+
         # Start the simulation loop in a separate thread.
         sim_thread = threading.Thread(target=self.simulation_loop)
         sim_thread.daemon = True
@@ -126,10 +129,19 @@ class BaseVehicle(WheeledVehicle):
         # Find closest trajectory point, then set reference point some indices
         # ahead of the closest trajecctory point to imporove lateral controller
         # performance.  Use this trajectory pose as reference pose.
-        closest_ind = (self.find_closest_trajectory_pose() +
-                       numpy.round(self.v / 4))
+        closest_ind = self.find_closest_trajectory_pose()
+        ref_ind = closest_ind + numpy.round(self.v / 4)
         traj_len = len(self.np_trajectory[0])
-        ref_ind = closest_ind % traj_len
+        print traj_len-1, closest_ind
+        if self.loop is True:
+            ref_ind = ref_ind % traj_len
+        else:
+            if ref_ind > traj_len-1:
+                ref_ind = traj_len-1
+                if closest_ind == traj_len-1:
+                    self.at_dest = True
+            else:
+                ref_ind = closest_ind
         ref_state = self.np_trajectory[:, ref_ind]
         # set controll commands.
         self.set_control_commands(ref_state)
@@ -161,7 +173,10 @@ class BaseVehicle(WheeledVehicle):
         @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
                           the vehicle tries to reach.
         """
-        self.commands['speed'] = self.cruising_speed
+        if not self.at_dest:
+            self.commands['speed'] = self.cruising_speed
+        else:
+            self.commands['speed'] = 0.0
         dx = ref_state[0] - self.x
         dy = ref_state[1] - self.y
         dx_v = numpy.cos(self.yaw) * dx + numpy.sin(self.yaw) * dy
@@ -272,6 +287,8 @@ class BaseVehicle(WheeledVehicle):
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
         self.np_trajectory = to_numpy_trajectory(trajectory)
+        self.loop = True
+        self.at_dest = False
         msg = ("Closed loop trajectory of vehicle #%i " % self.vehicle_id +
                "successfully set.")
         return SetLoopResponse(True, msg)
@@ -283,14 +300,22 @@ class BaseVehicle(WheeledVehicle):
         @param req: I{(SetDestination)} Request of the service that sets the
                     vehicles trajectory to a specific destination.
         """
-        rospy.wait_for_service('get_tranjectory')
+        rospy.wait_for_service('/get_nearest_nodeid')
         try:
-            get_traj = rospy.ServiceProxy('get_tranjectory', GetTrajectory)
-            current_node = None
+            get_nodeid = rospy.ServiceProxy('/get_nearest_nodeid',
+                                            GetNearestNodeId)
+            current_node = get_nodeid(self.x, self.y, req.dest_id).node_id
+        except rospy.ServiceException, e:
+            raise "Service call failed: %s" % e
+        rospy.wait_for_service('/get_trajectory')
+        try:
+            get_traj = rospy.ServiceProxy('/get_trajectory', GetTrajectory)
             trajectory = get_traj(False, current_node, req.dest_id).trajectory
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
         self.np_trajectory = to_numpy_trajectory(trajectory)
+        self.loop = False
+        self.at_dest = False
         msg = ("Trajectory to destination of vehicle #%i " % self.vehicle_id +
                "successfully set.")
         return SetDestinationResponse(True, msg)
