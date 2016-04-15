@@ -16,6 +16,7 @@ from roslaunch.core import Node
 from sml_world.msg import VehicleState, WorldState
 from sml_world.srv import SpawnVehicle, SpawnVehicleResponse
 from sml_world.srv import SetLoop
+#from sml_world.srv import SetDestination
 from sml_world.srv import SetBool
 
 
@@ -40,7 +41,7 @@ class ROSLaunchExtended(ROSLaunch):
         set) calling its /set_loop service, as well as its /toggle_simulation
         service.
 
-        @param req: I{(SpawnVehicle)} Request messgae of the service that
+        @param req: I{(SpawnVehicle)} Request message of the service that
                     spawns a new vehicle.
         """
         namespace = "vehicle_" + str(req.vehicle_id)
@@ -52,6 +53,7 @@ class ROSLaunchExtended(ROSLaunch):
         self.launch_queue.put(node)
         loop_service = '/' + namespace + '/set_loop'
         rospy.wait_for_service(loop_service)
+
         if bool(req.node_id):
             try:
                 set_loop = rospy.ServiceProxy(loop_service, SetLoop)
@@ -100,6 +102,7 @@ def sml_world_central():
     while not rospy.is_shutdown():
         while not launcher.launch_queue.empty():
             launcher.spawn_vehicle()
+            #launcher.spawn_vehicleAtoB()
         world_state.vehicle_states = vs_dict.values()
         pub_ws.publish(world_state)
         if rate.remaining() < rospy.Duration(0):

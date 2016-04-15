@@ -62,6 +62,7 @@ if __name__ == '__main__':
         raise "Service call failed: %s" % e
     # Initialize the visualization module
     vis_module = Visualization(base_path, map_location, 800, 600, 5, True)
+#    vis_module = Visualization(base_path, map_location, 1820, 1380, 5, True)
     print "vis_module_started."
     vis_module.loop_iteration({})
     visualizer(vis_module)

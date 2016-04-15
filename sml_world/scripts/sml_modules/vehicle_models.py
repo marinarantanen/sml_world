@@ -360,3 +360,54 @@ class DummyVehicle(BaseVehicle):
                                     (self.radar_readings,
                                      [[r.rho], [r.theta], [r.yaw]]),
                                     axis=1)
+
+
+class Bus(BaseVehicle):
+    """Class for the automated bus."""
+
+    def __init__(self, namespace, vehicle_id, simulation_rate,
+                 x=0., y=0., yaw=0., v=0.):
+        """Initialize class Bus."""
+        super(Bus, self).__init__(namespace, vehicle_id,
+                                  simulation_rate, x, y, yaw, v)
+        self.sensors = ['Radar 35 10']
+        self.radar_readings = numpy.asarray([[], [], []])
+        self.launch_sensors()
+
+    def set_control_commands(self, ref_state):
+        """
+        Set the control commands, depending on the vehicle's controller.
+
+        @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
+                          the vehicle tries to reach.
+        """
+        super(Bus, self).set_control_commands(ref_state)
+        safety_distance = 15.
+        full_stop_distance = 6.
+        # Analyze radar readings.
+        if not numpy.any(self.radar_readings[0, :]):
+            return
+        min_dist = numpy.min(self.radar_readings[0, :])
+        # Set speed.
+        if min_dist < full_stop_distance:
+            desired_speed = 0.
+        elif min_dist < safety_distance:
+            desired_speed = self.cruising_speed * min_dist / safety_distance
+        else:
+            desired_speed = self.cruising_speed
+        self.commands['speed'] = desired_speed
+
+    def process_radar_readings(self, rr):
+        """
+        Put all sensor readings into a numpy array.
+
+        @param rr: I{(RadarReadings)} Radar readings message that needs to
+                   be put into the class variable radar_readings.
+        """
+        # Write sensor readings in an ndarray
+        self.radar_readings = numpy.asarray([[], [], []])
+        for r in rr.registered_vehicles:
+            self.radar_readings = numpy.concatenate(
+                                    (self.radar_readings,
+                                     [[r.rho], [r.theta], [r.yaw]]),
+                                    axis=1)

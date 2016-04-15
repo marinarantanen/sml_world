@@ -57,6 +57,7 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
+  Event.srv
   GetMapLocation.srv
   GetTrajectory.srv
   SetVehicleState.srv
@@ -65,6 +66,7 @@ add_service_files(
   SetDestination.srv
   SetBool.srv
   SpawnVehicle.srv
+  SpawnVehicleAtoB.srv
 )
 
 ## Generate actions in the 'action' folder

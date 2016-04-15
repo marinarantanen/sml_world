@@ -12,7 +12,7 @@ import os
 import math
 
 from sml_modules import bodyclasses
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, Bus
 
 
 class Visualization:
@@ -54,7 +54,7 @@ class Visualization:
 
         # As measured by Rui [LEFT, RIGHT, DOWN, UP]
         self.projector_area = [3.360, 4.490, 2.920, 2.970]
-
+#        self.projector_area = [300, 400, 20, 20]
         # The refresh rate of the visualization screen
         self.refresh_rate = float(20)
 
@@ -75,10 +75,15 @@ class Visualization:
 
         self.load_smart_car_image()
         self.load_truck_image()
+        self.load_red_bus_image()
+        self.load_green_bus_image()
+        self.load_yellow_bus_image()
+        self.load_bus_image()
         self.load_big_box_image()
         self.load_small_box_image()
         self.load_goal_image()
         self.setup_id_font()
+        self.load_block_image()
 
         self.show_ids = True
 
@@ -346,6 +351,17 @@ class Visualization:
 
         return
 
+    def load_block_image(self):
+        """Load the block image."""
+        block_width_meters = 2.096
+        block_length_meters = (4.779 - 0.910) * 2.
+
+        self.block_image = self.get_car_image(
+                        self.base_path + '/resources/block.png',
+                        block_width_meters, block_length_meters)
+
+        return
+
     def load_smart_car_image(self):
         """Load the car image, used for displaying the current vehicles."""
         car_width_meters = 2.096
@@ -414,7 +430,7 @@ class Visualization:
 
     def get_car_image(self, car_image_filename, car_width_meters,
                       car_length_meters):
-        """Load the car image stored in the file car_image_cilename."""
+        """Load the car image stored in the file car_image_filename."""
         car_image = pygame.image.load(car_image_filename)
 
         (car_image_width, car_image_height) = car_image.get_size()
@@ -451,6 +467,84 @@ class Visualization:
                     truck_width_meters, truck_length_meters)
 
         return
+
+    def load_bus_image(self):
+        """Load the bus image, used for displaying the current vehicles."""
+        minibus_width_meters = 0.08
+        # minibus_length_meters = 0.19
+        minibus_length_meters = 0.145 * 2
+        # This is the SML world meters
+        # of the minibus image width
+        bus_width_meters = 32. * minibus_width_meters
+        bus_length_meters = 32. * minibus_length_meters
+        self.bus_image = self.get_bus_image(
+                        self.base_path + '/resources/busTopOffset.png',
+                        bus_width_meters, bus_length_meters)
+        return
+
+    def load_red_bus_image(self):
+        """Load the bus image, used for displaying the current vehicles."""
+        minibus_width_meters = 0.08
+        # minibus_length_meters = 0.19
+        minibus_length_meters = 0.145 * 2
+        # This is the SML world meters
+        # of the minibus image width
+        bus_width_meters = 32. * minibus_width_meters
+        bus_length_meters = 32. * minibus_length_meters
+        self.red_bus_image = self.get_bus_image(
+                        self.base_path + '/resources/redBusOffset.png',
+                        bus_width_meters, bus_length_meters)
+        return
+
+    def load_green_bus_image(self):
+        """Load the bus image, used for displaying the current vehicles."""
+        minibus_width_meters = 0.08
+        # minibus_length_meters = 0.19
+        minibus_length_meters = 0.145 * 2
+        # This is the SML world meters
+        # of the minibus image width
+        bus_width_meters = 32. * minibus_width_meters
+        bus_length_meters = 32. * minibus_length_meters
+        self.green_bus_image = self.get_bus_image(
+                        self.base_path + '/resources/greenBusOffset.png',
+                        bus_width_meters, bus_length_meters)
+        return
+
+    def load_yellow_bus_image(self):
+        """Load the bus image, used for displaying the current vehicles."""
+        minibus_width_meters = 0.08
+        # minibus_length_meters = 0.19
+        minibus_length_meters = 0.145 * 2
+        # This is the SML world meters
+        # of the minibus image width
+        bus_width_meters = 32. * minibus_width_meters
+        bus_length_meters = 32. * minibus_length_meters
+        self.yellow_bus_image = self.get_bus_image(
+                        self.base_path + '/resources/yellowBusOffset.png',
+                        bus_width_meters, bus_length_meters)
+        return
+
+    def get_bus_image(self, bus_image_filename, bus_width_meters,
+                      bus_length_meters):
+        """Load the bus image, used for displaying the current vehicles."""
+        bus_image = pygame.image.load(bus_image_filename)
+        (bus_image_width, bus_image_height) = bus_image.get_size()
+
+        # pixel_per_meter_image = car_image_height/car_width_meters
+        [x_pixel_1, _] = self.convert_position_to_image_pixel(0, 0)
+        [x_pixel_2, _] = self.convert_position_to_image_pixel(bus_width_meters,
+                                                              0)
+
+        desired_bus_width_pixels = float(x_pixel_2 - x_pixel_1)
+
+        scale_down_ratio = desired_bus_width_pixels / bus_image_height
+
+        new_size = (int(round(scale_down_ratio * bus_image_width)),
+                    int(round(scale_down_ratio * bus_image_height)))
+
+        bus_image = pygame.transform.smoothscale(bus_image, new_size)
+
+        return bus_image
 
     def load_big_box_image(self):
         """Load the big_box image, used for displaying the current vehicles."""
@@ -576,6 +670,15 @@ class Visualization:
 
         return
 
+    def draw_events(self):
+#        event = self.events_dict[event_id]
+        event = 1
+        if event == 1:
+            self.draw_block(0, 0)
+        elif event == 2:
+            self.draw_block(10, 10)
+        return
+
     def draw_vehicles(self):
         """Iterate over the vehicles in self.vehicles_dict and draw them."""
         for vehicle_id in self.vehicles_dict:
@@ -617,6 +720,25 @@ class Visualization:
                     elif color == 4:
                         self.draw_red_car(vehicle['x'], vehicle['y'],
                                           vehicle['yaw'])
+            elif (vehicle_class_name == Bus.__name__):
+                if vehicle_id > -100:
+                    color = vehicle_id % 4
+
+                    if color == 0:
+                        self.draw_bus(vehicle['x'], vehicle['y'],
+                                      vehicle['yaw'])
+
+                    elif color == 1:
+                        self.draw_red_bus(vehicle['x'], vehicle['y'],
+                                          vehicle['yaw'])
+
+                    elif color == 2:
+                        self.draw_green_bus(vehicle['x'], vehicle['y'],
+                                            vehicle['yaw'])
+
+                    elif color == 3:
+                        self.draw_yellow_bus(vehicle['x'], vehicle['y'],
+                                             vehicle['yaw'])
 
             # elif vehicle_class_name == smartvehicle.SmartVehicle.__name__:
 
@@ -726,6 +848,46 @@ class Visualization:
         self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.truck_image)
         return
 
+    def draw_green_bus(self, truck_x, truck_y, truck_yaw):
+        """
+        Draw a truck, given its state: x, y and yaw.
+
+        It does so by calling draw_vehicle_image with the truck image as an
+        argument.
+        """
+        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.green_bus_image)
+        return
+
+    def draw_red_bus(self, truck_x, truck_y, truck_yaw):
+        """
+        Draw a truck, given its state: x, y and yaw.
+
+        It does so by calling draw_vehicle_image with the truck image as an
+        argument.
+        """
+        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.red_bus_image)
+        return
+
+    def draw_yellow_bus(self, truck_x, truck_y, truck_yaw):
+        """
+        Draw a truck, given its state: x, y and yaw.
+
+        It does so by calling draw_vehicle_image with the truck image as an
+        argument.
+        """
+        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.yellow_bus_image)
+        return
+
+    def draw_bus(self, truck_x, truck_y, truck_yaw):
+        """
+        Draw a bus, given its state: x, y and yaw.
+
+        It does so by calling draw_vehicle_image with the bus image as an
+        argument.
+        """
+        self.draw_vehicle_image(truck_x, truck_y, truck_yaw, self.bus_image)
+        return
+
     def draw_box(self, truck_x, truck_y, truck_yaw):
         """
         Draw a box, given its state: x, y and yaw.
@@ -766,6 +928,17 @@ class Visualization:
 
             self.add_surface_to_areas_to_blit(vehicle_rotated, pos)
 
+        return
+
+    def draw_block(self, block_x, block_y):
+        """
+        Draw a road block, given its position, x, y.
+
+        It does so by calling draw_vehicle_image with the block image as an
+        argument
+        """
+        block_yaw = 0
+        self.draw_vehicle_image(block_x, block_y, block_yaw, self.block_image)
         return
 
     def draw_goal(self, goal_x, goal_y):
@@ -865,6 +1038,7 @@ class Visualization:
         # Once the background is drawn,
         # draw the vehicles
         self.draw_vehicles()
+        self.draw_events()
 
         # Pygame functions to update the visualization
         # window

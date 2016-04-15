@@ -17,6 +17,7 @@ import rospy
 from sml_world.msg import Pose2D
 from sml_world.srv import GetMapLocation, GetMapLocationResponse
 from sml_world.srv import GetTrajectory, GetTrajectoryResponse
+from sml_world.srv import SetDestination
 
 from sml_modules.road_module.RoadModule import RoadModule
 
@@ -59,6 +60,9 @@ class RoadModuleExtend(RoadModule):
         if req.loop:
             print "get_closed_path_from_node_id"
             tx, ty = self.get_closed_path_from_node_id(req.start_id)
+        elif req.dest_id:
+            print "dest_id"
+            tx, ty = 0
         else:
             print "get_path_between_node_ids"
             tx, ty = self.get_path_between_node_ids(req.start_id,

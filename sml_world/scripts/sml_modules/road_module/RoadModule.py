@@ -43,12 +43,12 @@ class RoadModule(object):
 
         # A dictionary to store the OSM Node tags. Each key
         # will be a tag found while parsing the .xml file nodes
-        # and the value of said key is a list with the id/s of the 
+        # and the value of said key is a list with the id/s of the
         # node/s with said key
         self.osm_node_tag_dict = None
 
         # The width and height of the environment image
-        self.image_width = None 
+        self.image_width = None
         self.image_height = None
 
         # Stores the world_surface if it was generated
@@ -65,8 +65,8 @@ class RoadModule(object):
 
         self.check_world_image_up_to_date(map_file_location)
 
-        
-        
+
+
     def load_xml_world_info(self, xml_file_location):
         '''
         This method loads the information contained in the .xml created by JOSM
@@ -95,16 +95,16 @@ class RoadModule(object):
         self.lanelet_adjacency_matrix = RoadLibrary.create_lanelet_adjacency_matrix(self.osm_lanelet_dict, self.osm_node_dict)
 
         RoadDrawer.set_pixel_values_for_nodes(self, self.desired_image_width, self.desired_image_height, self.desired_image_pixel_per_meter)
-        
+
         return
 
     def normalize_node_coordinates(self, origin_osm_node = None):
         '''
         Centers all the OSMNode around a central point.
 
-        If origin_osm_node is provided it will set all the node coordinates 
+        If origin_osm_node is provided it will set all the node coordinates
         to be in a cartesian referential centered in origin_osm_node
-        If origin_osm_node is not provided (= None) then an average center 
+        If origin_osm_node is not provided (= None) then an average center
         of mass of all the nodes is computed and used as a the origin point
         on which referential is located.
 
@@ -128,7 +128,7 @@ class RoadModule(object):
             y_average = origin_osm_node.y
 
         else:
-          
+
             number_nodes = len( self.osm_node_dict )
 
             for node_id in self.osm_node_dict:
@@ -155,20 +155,20 @@ class RoadModule(object):
 
         return RoadLibrary.get_lanelets_containing_node_id(self.osm_lanelet_dict, osm_node_id, right_way_only)
 
-    
+
 
     def get_closed_path_from_node_tag(self, osm_node_tag, points_per_meter = 5):
         '''
         Given a node tag, it will compute a closed trajectory that passes through this node.
         If more than one node has the given tag, it will choose the first node with this tag
         and produce a warning to the terminal.
-        
+
         Inputs:
         osm_node_tag:
             The tag of the OSMNode where we wish the trajectory to pass.
         points_per_meter: (optional)
-            Defines the resolution of the points of the trajectory. The 
-            trajectory will be composed of pointer_per_meter points for 
+            Defines the resolution of the points of the trajectory. The
+            trajectory will be composed of pointer_per_meter points for
             each meter of length.
 
         Returns:
@@ -187,6 +187,54 @@ class RoadModule(object):
 
         return self.get_closed_path_from_node_id(node_ids[0], points_per_meter)
 
+
+
+    def get_open_path(self, start_osm_node_id, end_osm_node_id, points_per_meter = 5):
+        '''
+        Computes the trajectory from one node to another
+        '''
+        start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, True)
+        end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, True)
+        containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, True)
+
+        best_distance = 10e10
+        best_lanelets_path = []
+
+        for lanelet_id in containing_lanelet_ids:
+
+            lanelet_ids_path = RoadDijkstra.lanelet_dijkstra_algorithm(self, start_lanelet_id, end_lanelet_id)
+
+            current_distance = 0
+
+            for temp_lanelet_id_path in lanelet_ids_path:
+
+                current_distance += RoadLibrary.get_lanelet_length(self.osm_lanelet_dict[temp_lanelet_id_path], self.osm_node_dict)
+
+            if current_distance < best_distance:
+
+                best_distance = current_distance
+
+                # Need to add current lanelet_id to shortest path, since the
+                # shortest path does not include it
+                lanelet_ids_path.append(lanelet_id)
+
+                best_lanelets_path = lanelet_ids_path
+
+
+        traj_x = []
+        traj_y = []
+
+        for lanetet_id in best_lanelets_path:
+
+            [x, y] = RoadLibrary.convert_lanelet_to_path(self.osm_lanelet_dict[lanetet_id], self.osm_node_dict, points_per_meter)
+
+            traj_x.extend(x)
+            traj_y.extend(y)
+
+        return traj_x, traj_y
+
+
+
     def get_closed_path_from_node_id(self, osm_node_id, points_per_meter = 5):
         '''
         Given a node id, will compute a closed trajectory that passes through this node.
@@ -195,8 +243,8 @@ class RoadModule(object):
         osm_node_id:
             The id of the OSMNode where we wish the trajectory to pass.
         points_per_meter: (optional)
-            Defines the resolution of the points of the trajectory. The 
-            trajectory will be composed of pointer_per_meter points for 
+            Defines the resolution of the points of the trajectory. The
+            trajectory will be composed of pointer_per_meter points for
             each meter of length.
 
         Returns:
@@ -229,7 +277,7 @@ class RoadModule(object):
                 # Need to add current lanelet_id to shortest path, since the
                 # shortest path does not include it
                 lanelet_ids_path.append(lanelet_id)
-                
+
                 best_lanelets_path = lanelet_ids_path
 
 
@@ -258,8 +306,8 @@ class RoadModule(object):
         end_osm_node_id:
             The id of the OSMNode where we wish the trajectory to finish.
         points_per_meter: (optional)
-            Defines the resolution of the points of the trajectory. The 
-            trajectory will be composed of pointer_per_meter points for 
+            Defines the resolution of the points of the trajectory. The
+            trajectory will be composed of pointer_per_meter points for
             each meter of length.
 
         Returns:
@@ -275,7 +323,7 @@ class RoadModule(object):
 
         best_distance = 10e10
         best_lanelets_path = []
-        
+
         for start_lanelet_id in start_lanelet_ids:
 
             for end_lanelet_id in end_lanelet_ids:
@@ -292,10 +340,10 @@ class RoadModule(object):
                 for temp_lanelet_id_path in lanelet_ids_path:
 
                     current_distance += RoadLibrary.get_lanelet_length(self.osm_lanelet_dict[temp_lanelet_id_path], self.osm_node_dict)
-                
+
                 if current_distance < best_distance and current_distance > 0.1:
 
-                    # Need to add current start_lanelet_id and end_lanelet_id to 
+                    # Need to add current start_lanelet_id and end_lanelet_id to
                     # shortest path, since the shortest path does not include it
                     best_lanelets_path = [start_lanelet_id]
                     best_lanelets_path.extend(lanelet_ids_path)
@@ -341,7 +389,8 @@ class RoadModule(object):
 
         return self.get_path_between_node_ids(start_osm_node_id, end_osm_node_id, points_per_meter)
 
-        
+
+
 
     def get_shortest_path_distance(self, adjacency_matrix, previous_node, destination_id):
         "Simply receives Dijkstra outputs and sums the distances composing the shortest path"
@@ -353,8 +402,8 @@ class RoadModule(object):
             distance = distance + adjacency_matrix[ previous_node[destination_id] ][ destination_id ]
             destination_id = previous_node[destination_id]
 
-        
-        return distance 
+
+        return distance
 
 
     def get_environment_image(self, image_width = 1920, image_height = 1080, pixel_per_meter=1020/6):
@@ -367,7 +416,7 @@ class RoadModule(object):
         if self.world_surface == None:
 
             self.world_surface = RoadDrawer.create_world_surface(self, self.image_width, self.image_height)
-           
+
         # For debugging purposes
         #pygame.image.save(world_surface, 'world_surface.bmp')
 
@@ -391,7 +440,7 @@ class RoadModule(object):
         if not os.path.isfile(image_file_location):
             # Image does not exist need to generate it
             print "Image does not exist need to generate it."
-            
+
             self.generate_world_image(file_location)
 
             return
@@ -451,7 +500,7 @@ class RoadModule(object):
 
     def check_image_meta_data(self, file_location):
         '''
-        Returns True if current stored image has the same 
+        Returns True if current stored image has the same
         properties as the ones we desire.
         Returns false otherwise
         '''
