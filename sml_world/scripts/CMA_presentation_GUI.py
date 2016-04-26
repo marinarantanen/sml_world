@@ -8,9 +8,54 @@ import os
 import gtk
 import pygtk
 pygtk.require('2.0')
+import pygtk_chart
+from pygtk_chart import bar_chart
+import cairo
+import pango
+import pangocairo
+
+WIDTH, HEIGHT = 700, 300
+
+surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
+ctx = cairo.Context(surface)
+#ctx.scale(WIDTH, HEIGHT)
+pangocairo_context = pangocairo.CairoContext(ctx)
+
+rect = gtk.gdk.Rectangle(x=60, y=400, width=1700, height=1300)
+
+#drawingarea = gtk.DrawingArea()
+#drawingarea.set_size_request(600, 300)
+#drawable = drawingarea.window
+
+data = [('now', 276, 'Now'),
+        ('plusone', 52, '+1h'),
+        ('plustwo', 652, '+2h'),
+        ('plusthree', 65, '+3h'),
+        ('plusfour', 120, '+4h'),
+       ]
+
+barchart = bar_chart.BarChart()
+
+barchart.title.set_text('Estimated number of passengers upcoming hours')
+barchart.draw_basics(pangocairo_context, rect)
+#barchart.set_padding(5)
+barchart.grid.set_visible(True)
+barchart.grid.set_line_style(pygtk_chart.LINE_STYLE_DOTTED)
+barchart.set_mode(bar_chart.MODE_HORIZONTAL)
+
+#bar_chart.draw_rounded_rectangle(ctx, 60, 400, 356, 356, radius=0)
+
+for bar_info in data:
+    bar = bar_chart.Bar(*bar_info)
+    #bar.set_corner_radius(4)
+    barchart.add_bar(bar)
+    barchart.queue_draw()
+
+def cb_bar_clicked(barchart, bar):
+    print "Bar '%s' clicked." % bar.get_label()
 
 
-class ButtonWindow(gtk.Window):
+class CMAWindow(gtk.Window):
     """Create GUI window."""
 
     def on_queue_clicked(self, button):
@@ -41,11 +86,18 @@ class ButtonWindow(gtk.Window):
 
     def on_redbus_clicked(self, button):
         print("\"Red bus\" button was clicked")
-        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -384, toggle_sim: true}\" ")
+    #        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -384, toggle_sim: true}\" ")
+        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -542, toggle_sim: true}\" ")
 
     def on_greenbus_clicked(self, button):
         print("\"Green bus\" button was clicked")
-        os.system("rosservice call spawn_vehicle \"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 12.0, node_id: -100, toggle_sim: true}\" ")
+    #        os.system("rosservice call spawn_vehicle \"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 12.0, node_id: -100, toggle_sim: true}\" ")
+        os.system("rosservice call spawn_vehicle \"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 12.0, node_id: -300, toggle_sim: true}\" ")
+
+    def on_yellowbus_clicked(self, button):
+        print("\"Yellow bus\" button was clicked")
+        os.system("rosservice call spawn_vehicle \"{vehicle_id: 3, class_name: 'Bus', x: 60.0, y: -60.0, yaw: 0.0, v: 15.0, node_id: -220, toggle_sim: true}\" ")
+
 #    def on_stop_clicked(self, button):
 #        print("\"Stop\" button was clicked")
 
@@ -132,7 +184,7 @@ class ButtonWindow(gtk.Window):
         heroevent.connect("clicked", self.on_home_clicked)
 
         subwayevent = gtk.Button("Subway\nmeltdown")
-        blacklabel = heroevent.get_children()[0]
+        blacklabel = subwayevent.get_children()[0]
         subwayevent.modify_bg(gtk.STATE_NORMAL, standardgray)
         blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         subwayevent.set_size_request(110, 110)
@@ -151,6 +203,13 @@ class ButtonWindow(gtk.Window):
         blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         greenbusline.set_size_request(110, 110)
         greenbusline.connect("clicked", self.on_greenbus_clicked)
+
+        yellowbusline = gtk.Button("Start yellow\nbus line")
+        blacklabel = yellowbusline.get_children()[0]
+        yellowbusline.modify_bg(gtk.STATE_NORMAL, standardgray)
+        blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        yellowbusline.set_size_request(110, 110)
+        yellowbusline.connect("clicked", self.on_yellowbus_clicked)
 
         closeButton = gtk.Button("_Close", use_underline=True)
         blacklabel = closeButton.get_children()[0]
@@ -183,6 +242,8 @@ class ButtonWindow(gtk.Window):
         self.passview = gtk.TextView(buffer=passtext)
         self.Passtats.add(self.passview)
 
+        barchart.connect("bar-clicked", cb_bar_clicked)
+
         fixed.put(self.bkg, 0, 0)
         fixed.put(self.statsimage, 450, 70)
 
@@ -194,6 +255,7 @@ class ButtonWindow(gtk.Window):
 
         fixed.put(redbusline, 450, 385)
         fixed.put(greenbusline, 570, 385)
+        fixed.put(yellowbusline, 690, 385)
 
         fixed.put(closeButton, 980, 600)
 
@@ -204,9 +266,13 @@ class ButtonWindow(gtk.Window):
 
         fixed.put(Dynstats, 870, 70)
         fixed.put(Dynvalues, 1041, 70)
-        fixed.put(self.Passtats, 60, 400)
+        #fixed.put(self.Passtats, 60, 400)
 
-win = ButtonWindow()
+        fixed.put(barchart, 60, 400)
+
+win = CMAWindow()
 win.connect("delete-event", gtk.main_quit)
+win.resize(1200, 680)
 win.show_all()
+
 gtk.main()

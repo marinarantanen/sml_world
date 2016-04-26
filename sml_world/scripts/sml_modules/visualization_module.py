@@ -229,7 +229,7 @@ class Visualization:
             top_left_y = int(round(top_left_y))
             bot_right_x = int(round(bot_right_x))
             bot_right_y = int(round(bot_right_y))
-
+_
             background_array = pygame.PixelArray(self.bg_surface)
             cropped_image_array = background_array[top_left_x:bot_right_x,
                                                    top_left_y:bot_right_y]
