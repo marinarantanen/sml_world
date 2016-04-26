@@ -12,7 +12,7 @@ import pygtk
 pygtk.require('2.0')
 
 
-class ButtonWindow(gtk.Window):
+class StartWindow(gtk.Window):
     """Create GUI window."""
 
     def on_kista_clicked(self, button):
@@ -70,7 +70,7 @@ class ButtonWindow(gtk.Window):
         fixed.put(closeButton, 180, 270)
         fixed.put(mapswindow, 40, 30)
 
-win = ButtonWindow()
+win = StartWindow()
 win.connect("delete-event", gtk.main_quit)
 win.show_all()
 gtk.main()
