@@ -3,7 +3,7 @@ import RoadDrawer # Defines auxiliary functions related to image generation of t
 
 import RoadLibrary # Defines several functions needed for lanelets
 import RoadDijkstra # Defines some Dijkstra functions for lanelets
-
+import rospy
 import os, pygame
 
 class RoadModule(object):
@@ -148,12 +148,16 @@ class RoadModule(object):
 
         return
 
-    def get_lanelets_containing_node_id(self, osm_node_id, right_way_only = True):
+    def get_lanelets_containing_node_id(self, osm_node_id, right_way_only = False):
         '''
         Interface for RoadLibrary.get_lanelets_containing_node_id
         '''
 
-        return RoadLibrary.get_lanelets_containing_node_id(self.osm_lanelet_dict, osm_node_id, right_way_only)
+        lanelets = RoadLibrary.get_lanelets_containing_node_id(self.osm_lanelet_dict, osm_node_id, right_way_only)
+
+        if not lanelets:
+            raise NameError('Unable to find lanelets containing ' + str(osm_node_id))
+        return lanelets
 
 
 
@@ -187,6 +191,54 @@ class RoadModule(object):
 
         return self.get_closed_path_from_node_id(node_ids[0], points_per_meter)
 
+
+
+    def get_open_path(self, start_osm_node_id, end_osm_node_id, points_per_meter = 5):
+        '''
+        Computes the trajectory from one node to another
+        '''
+        start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, False)
+        end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, False)
+        containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, False)
+
+        best_distance = 10e10
+        best_lanelets_path = []
+
+        for lanelet_id in containing_lanelet_ids:
+
+            lanelet_ids_path = RoadDijkstra.lanelet_dijkstra_algorithm(self, start_lanelet_id, end_lanelet_id)
+
+            current_distance = 0
+
+            for temp_lanelet_id_path in lanelet_ids_path:
+
+                current_distance += RoadLibrary.get_lanelet_length(self.osm_lanelet_dict[temp_lanelet_id_path], self.osm_node_dict)
+
+            if current_distance < best_distance:
+
+                best_distance = current_distance
+
+                # Need to add current lanelet_id to shortest path, since the
+                # shortest path does not include it
+                lanelet_ids_path.append(lanelet_id)
+
+                best_lanelets_path = lanelet_ids_path
+
+
+        traj_x = []
+        traj_y = []
+
+        for lanetet_id in best_lanelets_path:
+
+            [x, y] = RoadLibrary.convert_lanelet_to_path(self.osm_lanelet_dict[lanetet_id], self.osm_node_dict, points_per_meter)
+
+            traj_x.extend(x)
+            traj_y.extend(y)
+
+        return traj_x, traj_y
+
+
+
     def get_closed_path_from_node_id(self, osm_node_id, points_per_meter = 5):
         '''
         Given a node id, will compute a closed trajectory that passes through this node.
@@ -207,7 +259,7 @@ class RoadModule(object):
 
         '''
 
-        containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, True)
+        containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, False)
 
         best_distance = 10e10
         best_lanelets_path = []
@@ -245,6 +297,17 @@ class RoadModule(object):
 
         return traj_x, traj_y
 
+    def get_path_distance_between_node_ids(self, start_osm_node_id, end_osm_node_id, points_per_meter=5):
+        '''
+        Computes the distance of the shortest path distance between two node id'start_osm_node_id
+        '''
+        x_traj, y_traj = self.get_path_between_node_ids(start_osm_node_id, end_osm_node_id, points_per_meter)
+        count = 0 
+        for i in range(1, len(x_traj)):
+            # Pythagorian distance
+            count += ((x_traj[i] - x_traj[i - 1]) ** 2 + (y_traj[i] - y_traj[i - 1]) ** 2) ** .5
+
+        return count 
 
     def get_path_between_node_ids(self, start_osm_node_id, end_osm_node_id, points_per_meter = 5):
         '''
@@ -269,10 +332,8 @@ class RoadModule(object):
             A list with the y coordinates of the trajectory
 
         '''
-
-        start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, True)
-        end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, True)
-
+        start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, False)
+        end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, False)
         circle = False
         if start_lanelet_ids == end_lanelet_ids:
             way_ids = self.osm_lanelet_dict[start_lanelet_ids[0]].right_osm_way.node_ids
@@ -297,7 +358,7 @@ class RoadModule(object):
 
                     current_distance += RoadLibrary.get_lanelet_length(self.osm_lanelet_dict[temp_lanelet_id_path], self.osm_node_dict)
 
-                if current_distance < best_distance:# and current_distance > 0.1:
+                if current_distance < best_distance and current_distance > 0.1:
 
                     # Need to add current start_lanelet_id and end_lanelet_id to
                     # shortest path, since the shortest path does not include it
@@ -314,9 +375,10 @@ class RoadModule(object):
         total_y = []
 
         if not best_lanelets_path:
-
+            # Todo: Fix returning infinity, because it's strictly not true
+            return [0., float('inf')], [0., float('inf')] 
             raise NameError("In RoadModule.py get_path_between_node_ids(): Could not find a trajectory"
-                " between the given nodes.")
+                " between the given nodes " + str(start_osm_node_id) + ' and ' + str(end_osm_node_id))
 
         for lanetet_id in best_lanelets_path:
 
@@ -346,7 +408,6 @@ class RoadModule(object):
         end_osm_node_id = self.osm_node_tag_dict[end_osm_node_tag][0]
 
         return self.get_path_between_node_ids(start_osm_node_id, end_osm_node_id, points_per_meter)
-
 
 
     def get_shortest_path_distance(self, adjacency_matrix, previous_node, destination_id):

@@ -13,10 +13,12 @@ import Queue
 import rospy
 from roslaunch.scriptapi import ROSLaunch
 from roslaunch.core import Node
-from sml_world.msg import VehicleState, WorldState
+from sml_world.msg import VehicleState, WorldState, BusStops
 from sml_world.srv import SpawnVehicle, SpawnVehicleResponse
 from sml_world.srv import SetLoop
+#from sml_world.srv import SetDestination
 from sml_world.srv import SetBool
+from sml_modules.bus_vehicle_model import BusVehicle
 
 
 class ROSLaunchExtended(ROSLaunch):
@@ -40,7 +42,7 @@ class ROSLaunchExtended(ROSLaunch):
         set) calling its /set_loop service, as well as its /toggle_simulation
         service.
 
-        @param req: I{(SpawnVehicle)} Request messgae of the service that
+        @param req: I{(SpawnVehicle)} Request message of the service that
                     spawns a new vehicle.
         """
         namespace = "vehicle_" + str(req.vehicle_id)
@@ -50,21 +52,23 @@ class ROSLaunchExtended(ROSLaunch):
                     namespace=namespace, args=args,
                     name=req.class_name.lower())
         self.launch_queue.put(node)
+
+        #if the vehicle is a bus, bus central will set the loop
         loop_service = '/' + namespace + '/set_loop'
         rospy.wait_for_service(loop_service)
-        if bool(req.node_id):
+        if req.node_id != 0:
             try:
                 set_loop = rospy.ServiceProxy(loop_service, SetLoop)
                 set_loop(req.node_id)
             except rospy.ServiceException, e:
-                raise "Service call failed: %s" % e
+                raise NameError("Service call failed: %s" % e)
         toggle_sim_serv = '/' + namespace + '/toggle_simulation'
         rospy.wait_for_service(toggle_sim_serv)
         try:
             toggle_sim = rospy.ServiceProxy(toggle_sim_serv, SetBool)
             toggle_sim(req.toggle_sim)
         except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+            raise NameError("Service call failed: %s" % e)
         msg = ("Vehicle #%i was successfully spawned." % req.vehicle_id)
         return SpawnVehicleResponse(True, msg)
 
@@ -84,14 +88,31 @@ def update_vehicle_state(vs, vs_dict):
     """
     vs_dict[vs.vehicle_id] = vs
 
+def update_bus_stops(bus_status, bus_args):
+    #Todo; Make this less terrifyingly disgusting
+    '''
+    Takes tuple to 
+    '''
+    bus_stops = bus_args[0]
+    bus_demands = bus_args[1]
+    if len(bus_demands) != len(bus_stops):
+        raise NameError('Something may have gone wrong')
+    for stop in bus_status.bus_stops:
+        bus_stops.append(stop)
+    for demand in bus_status.bus_stop_demands:
+        bus_demands.append(demand)
 
 def sml_world_central():
     """Inizialize ROS-node 'sml_world' and start subs, pubs and srvs."""
     world_state = WorldState()
     vs_dict = {}  # Saves all vehicle states in a dict with vehicle_id as key
+    bus_stops = []
+    bus_demands = []
     rospy.init_node('sml_world', log_level=rospy.WARN)
     rospy.Subscriber('current_vehicle_state', VehicleState,
                      update_vehicle_state, vs_dict)
+    rospy.Subscriber('current_bus_stops', BusStops,
+                    update_bus_stops, (bus_stops, bus_demands))
 
     launcher = ROSLaunchExtended()
 
@@ -100,7 +121,7 @@ def sml_world_central():
     while not rospy.is_shutdown():
         while not launcher.launch_queue.empty():
             launcher.spawn_vehicle()
-        world_state.vehicle_states = vs_dict.values()
+            #launcher.spawn_vehicleAtoB()
         pub_ws.publish(world_state)
         if rate.remaining() < rospy.Duration(0):
             rospy.logwarn("SML-World central could not keep up with the " +

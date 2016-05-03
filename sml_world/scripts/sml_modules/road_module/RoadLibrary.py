@@ -1,5 +1,4 @@
 import math
-
 def create_lanelet_adjacency_matrix(osm_lanelet_dict, osm_node_dict):
     '''
     Creates a lanelet adjacency matrix, which contains information about
@@ -61,14 +60,13 @@ def create_lanelet_adjacency_matrix(osm_lanelet_dict, osm_node_dict):
                 lanelet_index_b = osm_lanelet_dict.keys().index(lanelet_id_b)
 
                 adjacency_matrix[lanelet_index_a][lanelet_index_b] = lanelet_length
-
     return adjacency_matrix
 
 
 def check_lanelet_adjacency(lanelet_start, lanelet_end):
     '''
     Checks if two given lanelets are adjacent. Two lanelets are adjacent if
-    it is possible to go from lanelet_start to lanelet_b.
+    it is possible to go from lanelet_start to lanelet_end.
     This function is not commutative:
     check_lanelet_adjacency(A, B) != check_lanelet_adjacency(B, A)
 
@@ -133,7 +131,7 @@ def get_lanelet_length(osm_lanelet, osm_node_dict):
 
     return average_length
 
-def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_only = True):
+def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_only = False):
     '''
     Given an OSMNode id, will return the ids of the lanelets that contain this node in it's
     right and/or left way.
@@ -154,13 +152,12 @@ def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_onl
         A list with the ids of the lanelets that contain the given OSMNode id. Empty list
         if no lanelets were found.
     '''
+    #TODO: Changed so that searches both ways
 
     containing_lanelet_ids = []
+    for lanelet_id in sorted(osm_lanelet_dict):
 
-    for lanelet_id in osm_lanelet_dict:
-
-        current_lanelet = osm_lanelet_dict[lanelet_id]
-
+        current_lanelet = osm_lanelet_dict[lanelet_id]    
         if osm_node_id in current_lanelet.right_osm_way.node_ids:
 
             containing_lanelet_ids.append(lanelet_id)
@@ -168,9 +165,7 @@ def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_onl
             continue
 
         if not right_way_only:
-
             if osm_node_id in current_lanelet.left_osm_way.node_ids:
-
                 containing_lanelet_ids.append(lanelet_id)
 
                 continue

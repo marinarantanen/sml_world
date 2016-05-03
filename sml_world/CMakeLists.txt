@@ -53,11 +53,15 @@ add_message_files(
   Pose2DPolar.msg
   RadarReadings.msg
   WifiCom.msg
+  BusStops.msg
+  BusInformation.msg
+  BusCommands.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
+  Event.srv
   GetMapLocation.srv
   GetTrajectory.srv
   GetNearestNodeId.srv
@@ -68,7 +72,10 @@ add_service_files(
   SetBool.srv
   SpawnVehicle.srv
   SendWifiCom.srv
-)
+  StartBusRoute.srv
+  GetCoordinates.srv
+  BusRouting.srv
+  )
 
 ## Generate actions in the 'action' folder
 # add_action_files(

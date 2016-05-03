@@ -27,13 +27,16 @@ def update_state(ws, vis_module):
     @todo: Integrate ROS-messages for the world state.
     """
     ws_dict = {}
+    ws_dict['vehicles'] = {}
     for vs in ws.vehicle_states:
-        ws_dict[vs.vehicle_id] = {}
-        ws_dict[vs.vehicle_id]['id'] = vs.vehicle_id
-        ws_dict[vs.vehicle_id]['class_name'] = vs.class_name
-        ws_dict[vs.vehicle_id]['x'] = vs.x
-        ws_dict[vs.vehicle_id]['y'] = vs.y
-        ws_dict[vs.vehicle_id]['yaw'] = vs.yaw
+        ws_dict['vehicles'][vs.vehicle_id] = {}
+        ws_dict['vehicles'][vs.vehicle_id]['id'] = vs.vehicle_id
+        ws_dict['vehicles'][vs.vehicle_id]['class_name'] = vs.class_name
+        ws_dict['vehicles'][vs.vehicle_id]['x'] = vs.x
+        ws_dict['vehicles'][vs.vehicle_id]['y'] = vs.y
+        ws_dict['vehicles'][vs.vehicle_id]['yaw'] = vs.yaw
+    ws_dict['bus_stop_ids'] = ws.bus_stop_ids
+    ws_dict['bus_stop_demands'] = ws.bus_stop_demands
     vis_module.loop_iteration(ws_dict)
 
 
@@ -62,6 +65,8 @@ if __name__ == '__main__':
         raise "Service call failed: %s" % e
     # Initialize the visualization module
     vis_module = Visualization(base_path, map_location, 800, 600, 5, True)
+#    vis_module = Visualization(base_path, map_location, 1820, 1380, 5, True)
     print "vis_module_started."
-    vis_module.loop_iteration({})
+    #First loop with empty values
+    vis_module.loop_iteration({'vehicles' : {}, 'bus_stop_ids' : [], 'bus_stop_demands' : []})
     visualizer(vis_module)

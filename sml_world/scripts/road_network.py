@@ -19,6 +19,8 @@ from sml_world.msg import Pose2D
 from sml_world.srv import GetMapLocation, GetMapLocationResponse
 from sml_world.srv import GetTrajectory, GetTrajectoryResponse
 from sml_world.srv import GetNearestNodeId, GetNearestNodeIdResponse
+from sml_world.srv import GetCoordinates, GetCoordinatesResponse
+from sml_world.srv import SetDestination
 
 from sml_modules.road_module.RoadModule import RoadModule
 
@@ -47,6 +49,7 @@ class RoadModuleExtend(RoadModule):
                          self.osm_lanelet_dict.items()}
         ad_mat = np.asmatrix(self.lanelet_adjacency_matrix)
         ad_mat = 1/ad_mat + 1/ad_mat.T
+        print(ad_mat.shape)
         ll_sets = [set(i) for i in np.argwhere(ad_mat > 0)]
         ll_supersets = []
         for ll_set in ll_sets:
@@ -58,14 +61,14 @@ class RoadModuleExtend(RoadModule):
             if not overlap:
                 ll_supersets.append(ll_set)
         # Create dictionary that connects nodes to their position.
-        node_to_xy = {n_id: (n_osm.x, n_osm.y) for n_id, n_osm
+        self.node_to_xy = {n_id: (n_osm.x, n_osm.y) for n_id, n_osm
                       in self.osm_node_dict.items()}
         # Go through all supersets and group the connected lanelet-nodes.
         self.connected_nodes = []
         for ll_superset in ll_supersets:
             nodes_dict = {}
             for ll in ll_superset:
-                nodes_dict.update({n_id: node_to_xy[n_id] for
+                nodes_dict.update({n_id: self.node_to_xy[n_id] for
                                    n_id in ll_nodes_dict[ll]})
             self.connected_nodes.append(nodes_dict)
 
@@ -92,6 +95,9 @@ class RoadModuleExtend(RoadModule):
             print "get_path_between_node_ids"
             tx, ty = self.get_path_between_node_ids(req.start_id,
                                                     req.end_id)
+        if np.sum(tx) == float('inf'):
+            raise NameError('Unable to find trajectory between ' + 
+                                str(req.start_id) + ' and ' + str(req.end_id))
         trajectory = []
         if tx:
             # txp[i] = tx[i+1]
@@ -134,6 +140,16 @@ class RoadModuleExtend(RoadModule):
                 min_dist = min_dist_tmp
         return GetNearestNodeIdResponse(nearest_id)
 
+    def handle_get_coordinates(self, req):
+        """
+        Get the coordinates from node id
+
+        @param req: I{(GetNearestNodeId)} Request of the service that provides
+                    the ID of the node nearest to the sent coordinates.
+        """
+        #Find the connected node group that containes the original node
+        return GetCoordinatesResponse(self.node_to_xy[req.node_id][0], self.node_to_xy[req.node_id][0])
+
 
 def road_network(file_location):
     """
@@ -156,6 +172,8 @@ def road_network(file_location):
                   road_module.handle_get_trajectory)
     rospy.Service('/get_nearest_nodeid', GetNearestNodeId,
                   road_module.handle_get_nearest_nodeid)
+    rospy.Service('/get_node_coordinates', GetCoordinates,
+                  road_module.handle_get_coordinates)
     rospy.spin()
 
 

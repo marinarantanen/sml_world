@@ -1,6 +1,6 @@
 """
 Module containing classes for all simulated vehicles.
-
+Seperate module for bus vehicle
 Created on Mar 5, 2016
 
 @author: U{David Spulak<spulak@kth.se>}
@@ -77,7 +77,7 @@ class BaseVehicle(WheeledVehicle):
         self.v = v
         self.cruising_speed = v
         self.axles_distance = 1.9
-        self.np_trajectory = []
+        self.np_trajectory = numpy.zeros((0,0))
         self.commands = {}
 
         self.loop = False
@@ -126,9 +126,9 @@ class BaseVehicle(WheeledVehicle):
 
     def simulation_step(self):
         """Simulate one timestep of the car."""
-        # Find closest trajectory point, then set reference point some indices
-        # ahead of the closest trajecctory point to imporove lateral controller
-        # performance.  Use this trajectory pose as reference pose.
+        if not self.np_trajectory.size:
+            #No trajectory to go to.....
+            return
         closest_ind = self.find_closest_trajectory_pose()
         ref_ind = closest_ind + numpy.round(self.v / 4)
         traj_len = len(self.np_trajectory[0])
@@ -142,7 +142,7 @@ class BaseVehicle(WheeledVehicle):
                     self.at_dest = True
             else:
                 ref_ind = closest_ind
-        ref_state = self.np_trajectory[:, ref_ind]
+        ref_state = self.np_trajectory[:, int(ref_ind)]
         # set controll commands.
         self.set_control_commands(ref_state)
         # update vehicle state.
@@ -285,7 +285,7 @@ class BaseVehicle(WheeledVehicle):
             get_traj = rospy.ServiceProxy('/get_trajectory', GetTrajectory)
             trajectory = get_traj(True, req.node_id, 0).trajectory
         except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+            raise NameError("Service call failed: %s" % e)
         self.np_trajectory = to_numpy_trajectory(trajectory)
         self.loop = True
         self.at_dest = False
@@ -293,26 +293,35 @@ class BaseVehicle(WheeledVehicle):
                "successfully set.")
         return SetLoopResponse(True, msg)
 
-    def handle_set_destination(self, req):
+    def handle_set_destination(self, data):
         """
         Handle the set destination request.
 
         @param req: I{(SetDestination)} Request of the service that sets the
                     vehicles trajectory to a specific destination.
         """
-        rospy.wait_for_service('/get_nearest_nodeid')
-        try:
-            get_nodeid = rospy.ServiceProxy('/get_nearest_nodeid',
-                                            GetNearestNodeId)
-            current_node = get_nodeid(self.x, self.y, req.dest_id).node_id
-        except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+        #If the origin_id is 0, it has not been specified and we must find
+        #the closest node to where we are now
+        if data.origin_id == 0:
+            rospy.wait_for_service('/get_nearest_nodeid')
+            try:
+                get_nodeid = rospy.ServiceProxy('/get_nearest_nodeid',
+                                                GetNearestNodeId)
+                current_node = get_nodeid(self.x, self.y, data.dest_id).node_id
+            except rospy.ServiceException, e:
+                raise NameError("Service call failed: %s" % e)
+        else:
+            current_node = data.origin_id
+
+        if current_node == data.dest_id:
+            self.at_dest = True
+            msg = ("We're already there!")
+            return SetDestinationResponse(True, msg)
+
         rospy.wait_for_service('/get_trajectory')
-        try:
-            get_traj = rospy.ServiceProxy('/get_trajectory', GetTrajectory)
-            trajectory = get_traj(False, current_node, req.dest_id).trajectory
-        except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+        get_traj = rospy.ServiceProxy('/get_trajectory', GetTrajectory)
+        trajectory = get_traj(False, current_node, data.dest_id).trajectory
+
         self.np_trajectory = to_numpy_trajectory(trajectory)
         self.loop = False
         self.at_dest = False
@@ -427,9 +436,10 @@ class WifiVehicle(DummyVehicle):
             send_wifi = rospy.ServiceProxy("send_wifi_com", SendWifiCom)
             send_wifi("I am vehicle #%i" % self.vehicle_id)
         except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+            raise NameError("Service call failed: %s" % e)
         super(WifiVehicle, self).simulation_step()
 
     def process_wifi_com(self, wm):
         """Process messages received over wifi."""
         print wm.message
+
