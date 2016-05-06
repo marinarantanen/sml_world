@@ -47,6 +47,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
+  TrafficDemand.msg
   VehicleState.msg
   WorldState.msg
   Pose2D.msg
@@ -60,13 +61,13 @@ add_service_files(
   Event.srv
   GetMapLocation.srv
   GetTrajectory.srv
+  SetDemand.srv
   SetVehicleState.srv
   SetSpeed.srv
   SetLoop.srv
   SetDestination.srv
   SetBool.srv
   SpawnVehicle.srv
-  SpawnVehicleAtoB.srv
 )
 
 ## Generate actions in the 'action' folder

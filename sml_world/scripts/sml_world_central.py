@@ -13,7 +13,7 @@ import Queue
 import rospy
 from roslaunch.scriptapi import ROSLaunch
 from roslaunch.core import Node
-from sml_world.msg import VehicleState, WorldState
+from sml_world.msg import TrafficDemand, VehicleState, WorldState
 from sml_world.srv import SpawnVehicle, SpawnVehicleResponse
 from sml_world.srv import SetLoop
 #from sml_world.srv import SetDestination
@@ -86,14 +86,26 @@ def update_vehicle_state(vs, vs_dict):
     """
     vs_dict[vs.vehicle_id] = vs
 
+def update_traffic_demand(td, td_dict):
+    """
+    Write received demand into world state.
+
+    @param td: I{(TrafficDemand)} Demand state that needs to be updated
+    in the world state.
+    @param td_dict: I{(dict)} Dict of demand of various transports.
+    """
+    td_dict[td.bus_demand] = td
 
 def sml_world_central():
     """Inizialize ROS-node 'sml_world' and start subs, pubs and srvs."""
     world_state = WorldState()
     vs_dict = {}  # Saves all vehicle states in a dict with vehicle_id as key
+    td_dict = {}
     rospy.init_node('sml_world', log_level=rospy.WARN)
     rospy.Subscriber('current_vehicle_state', VehicleState,
                      update_vehicle_state, vs_dict)
+    rospy.Subscriber('current_demand', TrafficDemand,
+                     update_traffic_demand, td_dict)
 
     launcher = ROSLaunchExtended()
 
@@ -102,8 +114,8 @@ def sml_world_central():
     while not rospy.is_shutdown():
         while not launcher.launch_queue.empty():
             launcher.spawn_vehicle()
-            #launcher.spawn_vehicleAtoB()
         world_state.vehicle_states = vs_dict.values()
+        world_state.traffic_demand = td_dict.values()
         pub_ws.publish(world_state)
         if rate.remaining() < rospy.Duration(0):
             rospy.logwarn("SML-World central could not keep up with the " +

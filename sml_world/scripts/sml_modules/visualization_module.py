@@ -14,6 +14,8 @@ import math
 from sml_modules import bodyclasses
 from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, Bus
 
+from sml_world.srv import GetTrajectory
+import rospy
 
 class Visualization:
     """
@@ -229,7 +231,7 @@ class Visualization:
             top_left_y = int(round(top_left_y))
             bot_right_x = int(round(bot_right_x))
             bot_right_y = int(round(bot_right_y))
-_
+
             background_array = pygame.PixelArray(self.bg_surface)
             cropped_image_array = background_array[top_left_x:bot_right_x,
                                                    top_left_y:bot_right_y]
@@ -679,13 +681,44 @@ _
             self.draw_block(10, 10)
         return
 
+    def trajectory(self, prevpos):
+        poslist = prevpos
+        if len(self.vehicles_dict) > 0:
+            value = dict((key, value) for key, value
+                in self.vehicles_dict.iteritems() if key == 1)
+            vehicle_info = value.values()
+            vehicle_stats = vehicle_info[0].values()
+            x = vehicle_stats[1]
+            y = vehicle_stats[4]
+            [pixel_x, pixel_y] = self.convert_position_to_image_pixel(x, y)
+            pos = [pixel_x, pixel_y]
+            poslist.append(pos)
+        return poslist
+
     def draw_vehicles(self):
         """Iterate over the vehicles in self.vehicles_dict and draw them."""
+
+        red = (255, 0, 0)
+
         for vehicle_id in self.vehicles_dict:
 
             vehicle = self.vehicles_dict[vehicle_id]
 
             vehicle_class_name = vehicle['class_name']
+
+#            def prevpos(self):
+#                prevx = vehicle['x']
+#                prevy = vehicle['y']
+#                [pix_prevx, pix_prevy] = self.convert_position_to_image_pixel(prevx, prevy)
+#                prev = [pix_prevx, pix_prevy]
+#                prevpos.append(prev)
+#            return prevpos
+
+            prevx = vehicle['x']
+            prevy = vehicle['y']
+            [pix_prevx, pix_prevy] = self.convert_position_to_image_pixel(prevx-5, prevy-10)
+            prev = [(pix_prevx, pix_prevy)]
+            poslist = self.trajectory(prev)
 
             if vehicle_class_name == bodyclasses.QualisysGoal.__name__:
                 self.draw_goal(vehicle['x'], vehicle['y'])
@@ -731,6 +764,7 @@ _
                     elif color == 1:
                         self.draw_red_bus(vehicle['x'], vehicle['y'],
                                           vehicle['yaw'])
+                        pygame.draw.lines(self.window, red, True, poslist, 3)
 
                     elif color == 2:
                         self.draw_green_bus(vehicle['x'], vehicle['y'],

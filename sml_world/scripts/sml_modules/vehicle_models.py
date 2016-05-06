@@ -14,12 +14,13 @@ import rospy
 from roslaunch.scriptapi import ROSLaunch
 from roslaunch.core import Node
 import sml_world.msg as msgs
-from sml_world.msg import VehicleState
+from sml_world.msg import VehicleState, TrafficDemand
 from sml_world.srv import SetBool, SetBoolResponse
 from sml_world.srv import SetVehicleState, SetVehicleStateResponse
 from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
+from sml_world.srv import SetDemand, SetDemandResponse
 from sml_world.srv import GetTrajectory
 # from sml_world.srv import PublishCom
 
@@ -87,7 +88,8 @@ class BaseVehicle(WheeledVehicle):
         # the services before the initialization of the vehicle is finished.
         self.pub_state = rospy.Publisher('/current_vehicle_state',
                                          VehicleState, queue_size=10)
-
+        self.pub_demand = rospy.Publisher('/current_demand', TrafficDemand,
+                                         queue_size=10)
         rospy.Service(self.namespace + 'set_state', SetVehicleState,
                       self.handle_set_state)
         rospy.Service(self.namespace + 'set_speed_kph', SetSpeed,
@@ -98,6 +100,9 @@ class BaseVehicle(WheeledVehicle):
                       self.handle_set_destination)
         rospy.Service(self.namespace + 'toggle_simulation', SetBool,
                       self.handle_toggle_simulation)
+
+        rospy.Service(self.namespace + 'set_demand', SetDemand,
+                      self.handle_set_demand)
         # rospy.wait_for_service(self.namespace + '/publish_com')
         # self.publish_com = rospy.ServiceProxy(self.namespace + 'publish_com',
         #                                       PublishCom)
@@ -215,6 +220,16 @@ class BaseVehicle(WheeledVehicle):
                              getattr(msgs, sensor_name+'Readings'),
                              getattr(self, 'process_'+subpub_name))
         pass
+
+    def handle_set_demand(self, req):
+        """
+        Handle set demand.
+
+        @param req: I{(SetDemand)} Request of the service that sets demand.
+        """
+        self.bus_demand = req.bus_demand
+        msg = "Demand #%i successfully set." % self.bus_demand
+        return SetDemandResponse(True, msg)
 
     def handle_set_state(self, req):
         """
