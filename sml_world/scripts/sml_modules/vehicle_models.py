@@ -1,6 +1,6 @@
 """
 Module containing classes for all simulated vehicles.
-
+Seperate module for bus vehicle
 Created on Mar 5, 2016
 
 @author: U{David Spulak<spulak@kth.se>}
@@ -14,13 +14,14 @@ import rospy
 from roslaunch.scriptapi import ROSLaunch
 from roslaunch.core import Node
 import sml_world.msg as msgs
-from sml_world.msg import VehicleState
+from sml_world.msg import VehicleState, TrafficDemand
 from sml_world.srv import SetBool, SetBoolResponse
 from sml_world.srv import SetVehicleState, SetVehicleStateResponse
 from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
-from sml_world.srv import GetTrajectory
+from sml_world.srv import SetDemand, SetDemandResponse
+from sml_world.srv import GetTrajectory, GetNearestNodeId
 from sml_world.srv import SendWifiCom
 # from sml_world.srv import PublishCom
 
@@ -77,8 +78,11 @@ class BaseVehicle(WheeledVehicle):
         self.v = v
         self.cruising_speed = v
         self.axles_distance = 1.9
-        self.np_trajectory = []
+        self.np_trajectory = numpy.zeros((0,0))
         self.commands = {}
+
+        self.loop = False
+        self.at_dest = False
 
         # Start the simulation loop in a separate thread.
         sim_thread = threading.Thread(target=self.simulation_loop)
@@ -89,7 +93,8 @@ class BaseVehicle(WheeledVehicle):
         # the services before the initialization of the vehicle is finished.
         self.pub_state = rospy.Publisher('/current_vehicle_state',
                                          VehicleState, queue_size=10)
-
+        self.pub_demand = rospy.Publisher('/current_demand', TrafficDemand,
+                                         queue_size=10)
         rospy.Service(self.namespace + 'set_state', SetVehicleState,
                       self.handle_set_state)
         rospy.Service(self.namespace + 'set_speed_kph', SetSpeed,
@@ -100,6 +105,9 @@ class BaseVehicle(WheeledVehicle):
                       self.handle_set_destination)
         rospy.Service(self.namespace + 'toggle_simulation', SetBool,
                       self.handle_toggle_simulation)
+
+        rospy.Service(self.namespace + 'set_demand', SetDemand,
+                      self.handle_set_demand)
         # rospy.wait_for_service(self.namespace + '/publish_com')
         # self.publish_com = rospy.ServiceProxy(self.namespace + 'publish_com',
         #                                       PublishCom)
@@ -123,14 +131,23 @@ class BaseVehicle(WheeledVehicle):
 
     def simulation_step(self):
         """Simulate one timestep of the car."""
-        # Find closest trajectory point, then set reference point some indices
-        # ahead of the closest trajecctory point to imporove lateral controller
-        # performance.  Use this trajectory pose as reference pose.
-        closest_ind = (self.find_closest_trajectory_pose() +
-                       numpy.round(self.v / 4))
+        if not self.np_trajectory.size:
+            #No trajectory to go to.....
+            return
+        closest_ind = self.find_closest_trajectory_pose()
+        ref_ind = closest_ind + numpy.round(self.v / 4)
         traj_len = len(self.np_trajectory[0])
-        ref_ind = closest_ind % traj_len
-        ref_state = self.np_trajectory[:, ref_ind]
+        print traj_len-1, closest_ind
+        if self.loop is True:
+            ref_ind = ref_ind % traj_len
+        else:
+            if ref_ind > traj_len-1:
+                ref_ind = traj_len-1
+                if closest_ind == traj_len-1:
+                    self.at_dest = True
+            else:
+                ref_ind = closest_ind
+        ref_state = self.np_trajectory[:, int(ref_ind)]
         # set controll commands.
         self.set_control_commands(ref_state)
         # update vehicle state.
@@ -161,7 +178,10 @@ class BaseVehicle(WheeledVehicle):
         @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
                           the vehicle tries to reach.
         """
-        self.commands['speed'] = self.cruising_speed
+        if not self.at_dest:
+            self.commands['speed'] = self.cruising_speed
+        else:
+            self.commands['speed'] = 0.0
         dx = ref_state[0] - self.x
         dy = ref_state[1] - self.y
         dx_v = numpy.cos(self.yaw) * dx + numpy.sin(self.yaw) * dy
@@ -233,6 +253,16 @@ class BaseVehicle(WheeledVehicle):
                              getattr(msgs, com_name+'Com'),
                              getattr(self, 'process_'+subpub_name))
 
+    def handle_set_demand(self, req):
+        """
+        Handle set demand.
+
+        @param req: I{(SetDemand)} Request of the service that sets demand.
+        """
+        self.bus_demand = req.bus_demand
+        msg = "Demand #%i successfully set." % self.bus_demand
+        return SetDemandResponse(True, msg)
+
     def handle_set_state(self, req):
         """
         Handle the set state request.
@@ -270,27 +300,47 @@ class BaseVehicle(WheeledVehicle):
             get_traj = rospy.ServiceProxy('/get_trajectory', GetTrajectory)
             trajectory = get_traj(True, req.node_id, 0).trajectory
         except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+            raise NameError("Service call failed: %s" % e)
         self.np_trajectory = to_numpy_trajectory(trajectory)
+        self.loop = True
+        self.at_dest = False
         msg = ("Closed loop trajectory of vehicle #%i " % self.vehicle_id +
                "successfully set.")
         return SetLoopResponse(True, msg)
 
-    def handle_set_destination(self, req):
+    def handle_set_destination(self, data):
         """
         Handle the set destination request.
 
         @param req: I{(SetDestination)} Request of the service that sets the
                     vehicles trajectory to a specific destination.
         """
-        rospy.wait_for_service('get_tranjectory')
-        try:
-            get_traj = rospy.ServiceProxy('get_tranjectory', GetTrajectory)
-            current_node = None
-            trajectory = get_traj(False, current_node, req.dest_id).trajectory
-        except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+        #If the origin_id is 0, it has not been specified and we must find
+        #the closest node to where we are now
+        if data.origin_id == 0:
+            rospy.wait_for_service('/get_nearest_nodeid')
+            try:
+                get_nodeid = rospy.ServiceProxy('/get_nearest_nodeid',
+                                                GetNearestNodeId)
+                current_node = get_nodeid(self.x, self.y, data.dest_id).node_id
+            except rospy.ServiceException, e:
+                raise NameError("Service call failed: %s" % e)
+        else:
+            current_node = data.origin_id
+
+        if current_node == data.dest_id:
+            self.at_dest = True
+            msg = ("We're already there!")
+            return SetDestinationResponse(True, msg)
+        rospy.logwarn('Sanity check')
+        rospy.logwarn(data.dest_id)
+        rospy.wait_for_service('/get_trajectory')
+        get_traj = rospy.ServiceProxy('/get_trajectory', GetTrajectory)
+        trajectory = get_traj(False, current_node, data.dest_id).trajectory
+
         self.np_trajectory = to_numpy_trajectory(trajectory)
+        self.loop = False
+        self.at_dest = False
         msg = ("Trajectory to destination of vehicle #%i " % self.vehicle_id +
                "successfully set.")
         return SetDestinationResponse(True, msg)
@@ -379,6 +429,56 @@ class DummyVehicle(BaseVehicle):
                                     axis=1)
 
 
+class Bus(BaseVehicle):
+    """Class for the automated bus."""
+
+    def __init__(self, namespace, vehicle_id, simulation_rate,
+                 x=0., y=0., yaw=0., v=0.):
+        """Initialize class Bus."""
+        super(Bus, self).__init__(namespace, vehicle_id,
+                                  simulation_rate, x, y, yaw, v)
+        self.sensors = ['Radar 35 10']
+        self.radar_readings = numpy.asarray([[], [], []])
+        self.launch_sensors()
+
+    def set_control_commands(self, ref_state):
+        """
+        Set the control commands, depending on the vehicle's controller.
+
+        @param ref_state: I{(numpy array)} Reference state [x, y, yaw] that
+                          the vehicle tries to reach.
+        """
+        super(Bus, self).set_control_commands(ref_state)
+        safety_distance = 15.
+        full_stop_distance = 6.
+        # Analyze radar readings.
+        if not numpy.any(self.radar_readings[0, :]):
+            return
+        min_dist = numpy.min(self.radar_readings[0, :])
+        # Set speed.
+        if min_dist < full_stop_distance:
+            desired_speed = 0.
+        elif min_dist < safety_distance:
+            desired_speed = self.cruising_speed * min_dist / safety_distance
+        else:
+            desired_speed = self.cruising_speed
+        self.commands['speed'] = desired_speed
+
+    def process_radar_readings(self, rr):
+        """
+        Put all sensor readings into a numpy array.
+
+        @param rr: I{(RadarReadings)} Radar readings message that needs to
+                   be put into the class variable radar_readings.
+        """
+        # Write sensor readings in an ndarray
+        self.radar_readings = numpy.asarray([[], [], []])
+        for r in rr.registered_vehicles:
+            self.radar_readings = numpy.concatenate(
+                                    (self.radar_readings,
+                                     [[r.rho], [r.theta], [r.yaw]]),
+                                    axis=1)
+
 class WifiVehicle(DummyVehicle):
     """
     Class for the wifi vehicle.
@@ -402,7 +502,7 @@ class WifiVehicle(DummyVehicle):
             send_wifi = rospy.ServiceProxy("send_wifi_com", SendWifiCom)
             send_wifi("I am vehicle #%i" % self.vehicle_id)
         except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+            raise NameError("Service call failed: %s" % e)
         super(WifiVehicle, self).simulation_step()
 
     def process_wifi_com(self, wm):

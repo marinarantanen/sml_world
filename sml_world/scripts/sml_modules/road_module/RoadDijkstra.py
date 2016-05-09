@@ -1,7 +1,7 @@
 def lanelet_dijkstra_algorithm(road_module, source_lanelet_id, destination_lanelet_id):
     '''
     Interface for dijkstra algorithm.
-    Given a source_lanelet_id, and a destinanion_lanelet_id, it will find the shortest 
+    Given a source_lanelet_id, and a destinanion_lanelet_id, it will find the shortest
     lanelet path between them.
 
     Inputs:
@@ -15,7 +15,7 @@ def lanelet_dijkstra_algorithm(road_module, source_lanelet_id, destination_lanel
     Returns:
         lanelet_ids_path:
         The ids of the lanelets that form the shortest path from the
-        start lanelet to the end lanelet. 
+        start lanelet to the end lanelet.
         NOTE: Does not include the start and end ids lanelets in it.
 
         To add it easily do:
@@ -41,7 +41,7 @@ def lanelet_dijkstra_algorithm(road_module, source_lanelet_id, destination_lanel
 
 
 def dijkstra_algorithm(adjacency_matrix, source_index, destination_index = None):
-    ''' 
+    '''
     Applies the Dijkstra Algorithm, given an adjacency matrix and a source index.
     Returns the shortest distances from the source index to every node in the adjacency matrix,
     and the for each index, the best previous index that forms the path to the source index.
@@ -65,12 +65,12 @@ def dijkstra_algorithm(adjacency_matrix, source_index, destination_index = None)
     previous_node:
         A list containing the previous index for each index. The previous
         index is defined as one that will result in the shortest path to the
-        source index. If a given index cannot connect to the source index 
+        source index. If a given index cannot connect to the source index
         then it's previous index will have the value -1
 
-    Returns: (When given a destination_index) 
+    Returns: (When given a destination_index)
     path:
-        The indexes of the shortest path between the source_index to 
+        The indexes of the shortest path between the source_index to
         the destination_index. This path is a list composed of the indexes
         in the shortest path. NOTE: Does not include the source_index,
         neither the destination_index in the list.
@@ -150,8 +150,8 @@ def lanelet_circular_dijkstra_algorithm(road_module, source_lanelet_id):
 
     Returns:
         lanelet_ids_path:
-        The ids of the lanelets that form the shortest path from the 
-        desired lanelet to itself. 
+        The ids of the lanelets that form the shortest path from the
+        desired lanelet to itself.
         NOTE: Does not include the id of the provided lanelet.
 
     '''
@@ -172,7 +172,7 @@ def lanelet_circular_dijkstra_algorithm(road_module, source_lanelet_id):
 
 
 def circular_dijkstra_algorithm(adjacency_matrix, source_index):
-    ''' 
+    '''
     A particular case of the dijkstra algorithm in which we desire
     to find the shortest path from a node to itself.
     Given a source_index of the adjacency_matrix, it will compute the
@@ -200,11 +200,11 @@ def circular_dijkstra_algorithm(adjacency_matrix, source_index):
     from node 3 to node 3.
     1) Create node 3a which connects to all the nodes
     that 3 connects to.
-    2) Create node 3b which is connected from all the nodes 
+    2) Create node 3b which is connected from all the nodes
     that 3 is connected from.
     3) Run a Dijkstra from node 3a to 3b
-    This requires the creation of a new graph, or in 
-    our case of a new adjacency matrix, which we 
+    This requires the creation of a new graph, or in
+    our case of a new adjacency matrix, which we
     call extended_adjacency_matrix
     '''
     extended_adjacency_matrix = []
@@ -215,7 +215,7 @@ def circular_dijkstra_algorithm(adjacency_matrix, source_index):
     for i, line in enumerate(adjacency_matrix):
 
         remapping_indexes.append(cnt)
-        
+
         new_line = []
 
         for j, value in enumerate(line):

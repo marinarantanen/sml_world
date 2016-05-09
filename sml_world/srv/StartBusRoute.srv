@@ -1,0 +1,3 @@
+int32[] stops
+int32 busid
+int32 startnode
