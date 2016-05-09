@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <osm version='0.6' upload='true' generator='JOSM'>
+
   <node id='-912' action='modify' visible='true' lat='59.15434643259455' lon='17.65981611700815' />
   <node id='-910' action='modify' visible='true' lat='59.15438947271382' lon='17.659817289478095' />
   <node id='-908' action='modify' visible='true' lat='59.15442607219272' lon='17.659810203221355' />
@@ -489,44 +490,134 @@
     <nd ref='-490' />
     <nd ref='-492' />
     <nd ref='-494' />
-    <nd ref='-496' />
-    <nd ref='-498' />
-    <nd ref='-500' />
-    <nd ref='-502' />
-    <nd ref='-504' />
-    <nd ref='-506' />
-    <nd ref='-508' />
-    <nd ref='-510' />
-    <nd ref='-512' />
-    <nd ref='-514' />
-    <nd ref='-548' />
-    <nd ref='-516' />
-    <nd ref='-518' />
-    <nd ref='-520' />
-    <nd ref='-522' />
-    <nd ref='-524' />
-    <nd ref='-526' />
-    <nd ref='-528' />
-    <nd ref='-530' />
-    <nd ref='-532' />
-    <nd ref='-534' />
-    <nd ref='-536' />
-    <nd ref='-538' />
-    <nd ref='-540' />
-    <nd ref='-542' />
-    <nd ref='-544' />
-    <nd ref='-546' />
-    <nd ref='-550' />
     <tag k='line_type' v='exterior' />
   </way>
-  <way id='-590' action='modify' visible='true'>
-    <nd ref='-420' />
-    <nd ref='-422' />
+  <way id='-662' action='modify' visible='true'>
+    <nd ref='-496' />
+    <nd ref='-498' />
+    <nd ref='-506' />
+    <nd ref='-500' />
+    <nd ref='-242' />
+  </way>
+  <way id='-660' action='modify' visible='true'>
+    <nd ref='-494' />
+    <nd ref='-532' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-658' action='modify' visible='true'>
+    <nd ref='-134' />
+    <nd ref='-478' />
+    <nd ref='-480' />
+    <nd ref='-472' />
+  </way>
+  <way id='-656' action='modify' visible='true'>
+    <nd ref='-140' />
+    <nd ref='-474' />
+    <nd ref='-476' />
+    <nd ref='-470' />
+  </way>
+  <way id='-654' action='modify' visible='true'>
+    <nd ref='-472' />
+    <nd ref='-292' />
+    <nd ref='-246' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-652' action='modify' visible='true'>
+    <nd ref='-332' />
+    <nd ref='-396' />
+    <nd ref='-470' />
+    <tag k='line_type' v='interior' />
+  </way>
+  <way id='-650' action='modify' visible='true'>
+    <nd ref='-468' />
+    <nd ref='-138' />
+  </way>
+  <way id='-648' action='modify' visible='true'>
+    <nd ref='-324' />
+    <nd ref='-466' />
+    <nd ref='-508' />
+    <nd ref='-502' />
+    <nd ref='-108' />
+  </way>
+  <way id='-646' action='modify' visible='true'>
+    <nd ref='-178' />
+    <nd ref='-504' />
+    <nd ref='-464' />
+    <nd ref='-510' />
+    <nd ref='-142' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-644' action='modify' visible='true'>
+    <nd ref='-112' />
+    <nd ref='-188' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-642' action='modify' visible='true'>
+    <nd ref='-324' />
+    <nd ref='-358' />
+    <nd ref='-110' />
+    <tag k='line_type' v='interior' />
+  </way>
+  <way id='-640' action='modify' visible='true'>
+    <nd ref='-114' />
+    <nd ref='-312' />
+    <nd ref='-242' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-638' action='modify' visible='true'>
+    <nd ref='-290' />
+    <nd ref='-472' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-636' action='modify' visible='true'>
+    <nd ref='-470' />
+    <nd ref='-132' />
+    <tag k='line_type' v='interior' />
+  </way>
+  <way id='-634' action='modify' visible='true'>
+    <nd ref='-138' />
+    <nd ref='-150' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-632' action='modify' visible='true'>
+    <nd ref='-454' />
+    <nd ref='-452' />
+    <nd ref='-450' />
+    <nd ref='-448' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-630' action='modify' visible='true'>
+    <nd ref='-448' />
+    <nd ref='-446' />
+    <nd ref='-444' />
+    <nd ref='-442' />
+    <nd ref='-440' />
+    <nd ref='-460' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-628' action='modify' visible='true'>
+    <nd ref='-458' />
+    <nd ref='-72' />
+    <nd ref='-456' />
+    <nd ref='-74' />
+    <nd ref='-70' />
+    <nd ref='-462' />
+    <tag k='line_type' v='exterior' />
+  </way>
+  <way id='-626' action='modify' visible='true'>
     <nd ref='-424' />
+    <nd ref='-436' />
+    <nd ref='-438' />
+    <nd ref='-434' />
+    <tag k='line_type' v='interior' />
+  </way>
+  <way id='-624' action='modify' visible='true'>
+    <nd ref='-422' />
     <nd ref='-426' />
     <nd ref='-428' />
     <nd ref='-430' />
     <nd ref='-432' />
+
     <nd ref='-434' />
   </way>
   <node id='-146' action='modify' visible='true' lat='59.15312691561959' lon='17.661016307249763' />

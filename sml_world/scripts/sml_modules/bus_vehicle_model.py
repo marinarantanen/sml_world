@@ -50,9 +50,11 @@ class BusVehicle(BaseVehicle):
 		super(BusVehicle, self).simulation_step()
 		if self.at_dest:
 			#Stop to allow for passengers to get on/off
+			rospy.logwarn('AT DESTINATION')
 			saved_v = self.v
 			self.v = 0
 			if not self.stops:
+				rospy.logwarn('requesting new stops')
 				self.request_new_stops()
 			self.go_to_node(self.stops.pop())
 
@@ -86,11 +88,14 @@ class BusVehicle(BaseVehicle):
 		@param origin_id: optional, enables user to specify id of origin node
 		'''
 		rospy.wait_for_service(self.namespace + 'set_destination')
-		try:
-			set_dest = rospy.ServiceProxy(self.namespace + 'set_destination', SetDestination)
-			resp = set_dest(node_id, origin_id)
-		except rospy.ServiceException, e:
-			raise "Service call failed: %s" % e
+		dest = SetDestination()
+		dest.origin_id = origin_id
+		dest.dest_id = node_id
+		rospy.logwarn(dest)
+		super(BusVehicle, self).handle_set_destination(dest)
+
+		#set_dest = rospy.ServiceProxy(self.namespace + 'set_destination', SetDestination)
+		#resp = set_dest(node_id, origin_id)
 
 	def get_node_coordinates(self, node_id):
 		'''

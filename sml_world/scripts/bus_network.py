@@ -51,7 +51,7 @@ class BusNetworkModule(RoadModule):
 		#Get all id tags with stop tag
 		self.bus_station_nodes = self.osm_node_tag_dict['stop']
 		#Let sml central know about the bus stops
-		pub_stops = rospy.Publisher('current_bus_stops', BusStops, queue_size=10)
+		self.pub_stops = rospy.Publisher('current_bus_stops', BusStops, queue_size=10)
 
 		#Tracks the nodes that a bus id has been assigned by user
 		self.responsible_nodes_by_bus = {}
@@ -89,12 +89,15 @@ class BusNetworkModule(RoadModule):
 
 		self.bus_stop_status = BusStops()
 		self.bus_stop_status.bus_stops = self.bus_station_nodes
-		self.get_and_publish_demands(pub_stops)
+		self.get_and_publish_demands(None)
 		
 		#Example how to add bus:
-		#self.add_bus(181, self.bus_station_nodes, -282)
+		self.add_bus(181, self.bus_station_nodes, -282)
 		#Example how to add demand (use negatives to subtract)
-		#self.add_demand(-282, 10)
+		self.add_demand(-282, 10)
+
+		rospy.Subscriber('update_demand_stats', 
+						BusStops, self.get_and_publish_demands)
 
 
 	def handle_get_map_location(self, req):
@@ -106,9 +109,10 @@ class BusNetworkModule(RoadModule):
 		"""
 		return GetMapLocationResponse(self.base_path, self.map_location)
 
-	def get_and_publish_demands(self, publisher):
+	def get_and_publish_demands(self, unused):
+		rospy.logwarn('network received it too')
 		self.bus_stop_status.bus_stop_demands = self.demand_model.get_all_demands(self.bus_station_nodes)
-		publisher.publish(self.bus_stop_status)
+		self.pub_stops.publish(self.bus_stop_status)
 
 	def add_demand(self, node, num):
 		self.demand_model.add_demand(node, num)
@@ -232,3 +236,4 @@ if __name__ == '__main__':
         msg = "Usage: rosrun sml_world bus_network.py <file_location>"
         raise Exception(msg)
     bus_network(file_location)
+

@@ -47,6 +47,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
+  TrafficDemand.msg
   VehicleState.msg
   WorldState.msg
   Pose2D.msg
@@ -64,6 +65,7 @@ add_service_files(
   Event.srv
   GetMapLocation.srv
   GetTrajectory.srv
+  SetDemand.srv
   GetNearestNodeId.srv
   SetVehicleState.srv
   SetSpeed.srv
@@ -74,6 +76,7 @@ add_service_files(
   SendWifiCom.srv
   StartBusRoute.srv
   GetCoordinates.srv
+  AddDemand.srv
   BusRouting.srv
   )
 

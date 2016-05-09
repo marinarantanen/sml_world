@@ -10,10 +10,50 @@ Created on Feb 23, 2016
 """
 
 import rospy
+#import roslaunch
+
+import mocap
+
+import sys
+import signal
+
 from sml_world.msg import WorldState
 from sml_world.srv import GetMapLocation
 
 from sml_modules.visualization_module import Visualization
+
+
+def qualisys_info():
+    """
+    Qualisys data listener.
+    @param qs_body:
+    """
+    stop = False
+
+    def signal_handler(signal, frame):
+        stop = True
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    Qs = mocap.Mocap(info=1)
+    bodies = Qs.find_available_bodies(printinfo=1)
+
+    #pick the first valid body
+    id_body = Qs.get_id_from_name("Iris2")
+
+    body = mocap.Body(Qs, id_body)
+
+    while not stop:
+        pose = body.getPose()
+        #rospy.loginfo(pose)
+        #rospy.logwarn(pose)
+
+#    qs_dict = {}
+#    qs_dict[qs_body]['x']
+#    qs_dict[qs_body]['y']
+#    qs_dict[qs_body]['z']
+#    qs_dict[qs_body]['yaw']
 
 
 def update_state(ws, vis_module):
@@ -39,6 +79,9 @@ def update_state(ws, vis_module):
     ws_dict['bus_stop_demands'] = ws.bus_stop_demands
     vis_module.loop_iteration(ws_dict)
 
+    for td in ws.traffic_demand:
+        ws_dict[td.bus_demand]['bus_demand'] = td.bus_demand
+
 
 def visualizer(vis_module):
     """
@@ -47,6 +90,7 @@ def visualizer(vis_module):
     @param vis_module: I{(VisualisationModule)} The initialized visualization
                        module used to show the current state of the simulation.
     """
+
     rospy.init_node('visualizer')
     rospy.Subscriber('world_state', WorldState, update_state, vis_module)
     rospy.loginfo("ROS-node 'visualizer' start spinning.")
@@ -70,3 +114,4 @@ if __name__ == '__main__':
     #First loop with empty values
     vis_module.loop_iteration({'vehicles' : {}, 'bus_stop_ids' : [], 'bus_stop_demands' : []})
     visualizer(vis_module)
+    qualisys_info()

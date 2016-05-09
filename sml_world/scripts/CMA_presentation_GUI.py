@@ -8,159 +8,69 @@ import os
 import gtk
 import pygtk
 pygtk.require('2.0')
+
 import pygtk_chart
 from pygtk_chart import bar_chart
-import cairo
-import pango
-import pangocairo
+#import cairo
+#import pango
+#import pangocairo
+import random
 
-WIDTH, HEIGHT = 700, 300
+from sml_world.msg import TrafficDemand
 
-surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
-ctx = cairo.Context(surface)
-#ctx.scale(WIDTH, HEIGHT)
-pangocairo_context = pangocairo.CairoContext(ctx)
+import mocap
 
-rect = gtk.gdk.Rectangle(x=60, y=400, width=1700, height=1300)
+import sys
+import signal
+from sml_world.srv import AddDemand
+import rospy
 
-#drawingarea = gtk.DrawingArea()
-#drawingarea.set_size_request(600, 300)
-#drawable = drawingarea.window
-
-data = [('now', 276, 'Now'),
-        ('plusone', 52, '+1h'),
-        ('plustwo', 652, '+2h'),
-        ('plusthree', 65, '+3h'),
-        ('plusfour', 120, '+4h'),
-       ]
-
-barchart = bar_chart.BarChart()
-
-barchart.title.set_text('Estimated number of passengers upcoming hours')
-barchart.draw_basics(pangocairo_context, rect)
-#barchart.set_padding(5)
-barchart.grid.set_visible(True)
-barchart.grid.set_line_style(pygtk_chart.LINE_STYLE_DOTTED)
-barchart.set_mode(bar_chart.MODE_HORIZONTAL)
-
-#bar_chart.draw_rounded_rectangle(ctx, 60, 400, 356, 356, radius=0)
-
-for bar_info in data:
-    bar = bar_chart.Bar(*bar_info)
-    #bar.set_corner_radius(4)
-    barchart.add_bar(bar)
-    barchart.queue_draw()
-
-def cb_bar_clicked(barchart, bar):
-    print "Bar '%s' clicked." % bar.get_label()
+green = gtk.gdk.color_parse("green")
+red = gtk.gdk.color_parse("red")
+standardgray = gtk.gdk.Color(red = 25000, green = 25000,blue = 25000, pixel = 0)
 
 
 class CMAWindow(gtk.Window):
     """Create GUI window."""
 
-    def on_queue_clicked(self, button):
-        print("\"Queue event\" button was clicked")
-        statsimagepath = self.base_path + '/resources/stats.jpg'
-        self.statsimage.set_from_file(statsimagepath)
-
-    def on_road_clicked(self, button):
-        print("\"Road event\" button was clicked")
-#        self.statsimage.set_from_file("jobstats.jpg")
-        statsimagepath = self.base_path + '/resources/jobstats.jpg'
-        self.statsimage.set_from_file(statsimagepath)
-
-    def on_home_clicked(self, button):
-        print("\"Hero event\" button was clicked")
-#        self.statsimage.set_from_file("homestats.jpg")
-        statsimagepath = self.base_path + '/resources/homestats.jpg'
-        self.statsimage.set_from_file(statsimagepath)
-        passtext = gtk.TextBuffer().set_text('Is this showing at all????')
-        self.passview = gtk.TextView(buffer=passtext)
-        self.Passtats.add(self.passview)
-
-    def on_concert_clicked(self, button):
-        print("\"Subway event\" button was clicked")
-#        self.statsimage.set_from_file("concertstats.jpg")
-        statsimagepath = self.base_path + '/resources/concertstats.jpg'
-        self.statsimage.set_from_file(statsimagepath)
-
-    def on_redbus_clicked(self, button):
-        print("\"Red bus\" button was clicked")
-    #        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -384, toggle_sim: true}\" ")
-        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -542, toggle_sim: true}\" ")
-
-    def on_greenbus_clicked(self, button):
-        print("\"Green bus\" button was clicked")
-    #        os.system("rosservice call spawn_vehicle \"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 12.0, node_id: -100, toggle_sim: true}\" ")
-        os.system("rosservice call spawn_vehicle \"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 12.0, node_id: -300, toggle_sim: true}\" ")
-
-    def on_yellowbus_clicked(self, button):
-        print("\"Yellow bus\" button was clicked")
-        os.system("rosservice call spawn_vehicle \"{vehicle_id: 3, class_name: 'Bus', x: 60.0, y: -60.0, yaw: 0.0, v: 15.0, node_id: -220, toggle_sim: true}\" ")
-
-#    def on_stop_clicked(self, button):
-#        print("\"Stop\" button was clicked")
-
-#    def on_log_clicked(self, button):
-#        def on_close_clicked(button):
-#            print("Closing application")
-#            gtk.main_quit()
-#            print("\"Log\" button was clicked")
-#            logwin = gtk.Window()
-#        logwin.set_size_request(500, 500)
-#        vbox = gtk.VBox()
-#        fixed = gtk.Fixed()
-#        logwin.add(vbox)
-#        vbox.add(fixed)
-#        closeButton = gtk.Button("_Close", use_underline=True)
-#        closeButton.connect("clicked", on_close_clicked)
-#        fixed.put(closeButton, 0, 0)
-#        logwin.show_all()
-
-    def on_close_clicked(self, button):
-        print("Closing application")
-        gtk.main_quit()
-
     def __init__(self):
         gtk.Window.__init__(self)
-        self.set_size_request(1200, 650)
+        self.set_size_request(1920, 1050)
+        self.set_position(gtk.WIN_POS_CENTER)
 
         self.base_path = '/home/mma/catkin_ws/src/sml_world/scripts'
 
         self.bkg = gtk.Image()
-        self.bkgimagepath = self.base_path + '/resources/bkg_four.png'
+        self.bkgimagepath = self.base_path + '/resources/bkg_light.png'
         self.bkg.set_from_file(self.bkgimagepath)
 
         self.statsimage = gtk.Image()
         self.statsimagepath = self.base_path + '/resources/stats.jpg'
         self.statsimage.set_from_file(self.statsimagepath)
 
-        vbox = gtk.VBox()
+        self.hbox_graph = gtk.HBox(False, 0)
+        self.hbox_info = gtk.HBox()
+        self.vbox = gtk.VBox(False, 0)
         fixed = gtk.Fixed()
-        self.add(vbox)
-        vbox.add(fixed)
+        self.add(self.vbox)
+        self.vbox.add(fixed)
 
-#        color = gtk.gdk.color_parse("pink")
-        standardgray = gtk.gdk.Color(red = 25000, green = 25000,blue = 25000, pixel = 0)
+        self.vbox.pack_start(self.hbox_graph, True, True, 0)
 
-        Eventwindow = gtk.Label("Events ")
-        Eventwindow.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        self.vbox.pack_start(self.hbox_info, False, True, 0)
+        self.hbox_info.pack_start(self.statsimage)
 
-        DynamicStats = gtk.Label("Dynamic routing stats")
-        DynamicStats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        #Eventwindow = gtk.Label("Events ")
+        #Eventwindow.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
 
-        StaticStats = gtk.Label("Traffic ")
-        StaticStats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        #DynamicStats = gtk.Label("Dynamic routing stats")
+        #DynamicStats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
 
-        PassengerStats = gtk.Label("Passenger stats ")
-        PassengerStats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        #StaticStats = gtk.Label("Traffic ")
+        #StaticStats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
 
-#        stopButton = gtk.Button("Stop")
-#        redlabel = stopButton.get_children()[0]
-#        stopButton.modify_bg(gtk.STATE_NORMAL, color)
-#        redlabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('red'))
-#        stopButton.connect("clicked", self.on_stop_clicked)
-#        stopButton.set_size_request(60,170)
+        #PassengerStats = gtk.Label("Passenger stats ")
+        #PassengerStats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
 
         queueevent = gtk.Button("Queue on \n highway")
         blacklabel = queueevent.get_children()[0]
@@ -181,7 +91,7 @@ class CMAWindow(gtk.Window):
         heroevent.modify_bg(gtk.STATE_NORMAL, standardgray)
         blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         heroevent.set_size_request(110, 110)
-        heroevent.connect("clicked", self.on_home_clicked)
+        heroevent.connect("clicked", self.add_demand_to_model)
 
         subwayevent = gtk.Button("Subway\nmeltdown")
         blacklabel = subwayevent.get_children()[0]
@@ -189,27 +99,6 @@ class CMAWindow(gtk.Window):
         blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         subwayevent.set_size_request(110, 110)
         subwayevent.connect("clicked", self.on_concert_clicked)
-
-        redbusline = gtk.Button("Start red\nbus line")
-        blacklabel = redbusline.get_children()[0]
-        redbusline.modify_bg(gtk.STATE_NORMAL, standardgray)
-        blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-        redbusline.set_size_request(110, 110)
-        redbusline.connect("clicked", self.on_redbus_clicked)
-
-        greenbusline = gtk.Button("Start green\nbus line")
-        blacklabel = greenbusline.get_children()[0]
-        greenbusline.modify_bg(gtk.STATE_NORMAL, standardgray)
-        blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-        greenbusline.set_size_request(110, 110)
-        greenbusline.connect("clicked", self.on_greenbus_clicked)
-
-        yellowbusline = gtk.Button("Start yellow\nbus line")
-        blacklabel = yellowbusline.get_children()[0]
-        yellowbusline.modify_bg(gtk.STATE_NORMAL, standardgray)
-        blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-        yellowbusline.set_size_request(110, 110)
-        yellowbusline.connect("clicked", self.on_yellowbus_clicked)
 
         closeButton = gtk.Button("_Close", use_underline=True)
         blacklabel = closeButton.get_children()[0]
@@ -242,37 +131,272 @@ class CMAWindow(gtk.Window):
         self.passview = gtk.TextView(buffer=passtext)
         self.Passtats.add(self.passview)
 
-        barchart.connect("bar-clicked", cb_bar_clicked)
+        #fixed.put(self.bkg, 0, 0)
 
-        fixed.put(self.bkg, 0, 0)
-        fixed.put(self.statsimage, 450, 70)
+        fixed.put(queueevent, 60, 135)
+        fixed.put(roadevent, 60, 250)
 
-        fixed.put(queueevent, 60, 85)
-        fixed.put(roadevent, 60, 200)
+        fixed.put(heroevent, 180, 135)
+        fixed.put(subwayevent, 180, 250)
 
-        fixed.put(heroevent, 180, 85)
-        fixed.put(subwayevent, 180, 200)
+        fixed.put(closeButton, 60, 400)
 
-        fixed.put(redbusline, 450, 385)
-        fixed.put(greenbusline, 570, 385)
-        fixed.put(yellowbusline, 690, 385)
+        #fixed.put(Eventwindow, 60, 40)
+        #fixed.put(PassengerStats, 60, 365)
+        #fixed.put(DynamicStats, 450, 40)
+        #fixed.put(StaticStats, 450, 365)
 
-        fixed.put(closeButton, 980, 600)
-
-        fixed.put(Eventwindow, 60, 40)
-        fixed.put(PassengerStats, 60, 365)
-        fixed.put(DynamicStats, 450, 40)
-        fixed.put(StaticStats, 450, 365)
-
-        fixed.put(Dynstats, 870, 70)
-        fixed.put(Dynvalues, 1041, 70)
+        fixed.put(Dynstats, 870, 185)
+        #fixed.put(Dynvalues, 1041, 185)
         #fixed.put(self.Passtats, 60, 400)
 
-        fixed.put(barchart, 60, 400)
+    def on_queue_clicked(self, button):
+        print("\"Queue event\" button was clicked")
+        statsimagepath = self.base_path + '/resources/stats.jpg'
+        self.statsimage.set_from_file(statsimagepath)
+        event_id = 1
+        self.stat_graph(event_id)
+        self.passenger_graph(event_id)
 
+    def on_road_clicked(self, button):
+        print("\"Road event\" button was clicked")
+#        self.statsimage.set_from_file("jobstats.jpg")
+        statsimagepath = self.base_path + '/resources/jobstats.jpg'
+        self.statsimage.set_from_file(statsimagepath)
+        event_id = 2
+        self.stat_graph(event_id)
+        self.passenger_graph(event_id)
+
+    def on_home_clicked(self, button):
+        print("\"Hero event\" button was clicked")
+#        self.statsimage.set_from_file("homestats.jpg")
+        statsimagepath = self.base_path + '/resources/homestats.jpg'
+        self.statsimage.set_from_file(statsimagepath)
+        event_id = 3
+        self.stat_graph(event_id)
+        self.passenger_graph(event_id)
+
+    def on_concert_clicked(self, button):
+        print("\"Subway event\" button was clicked")
+#        self.statsimage.set_from_file("concertstats.jpg")
+        statsimagepath = self.base_path + '/resources/concertstats.jpg'
+        self.statsimage.set_from_file(statsimagepath)
+        event_id = 4
+        self.stat_graph(event_id)
+        self.passenger_graph(event_id)
+
+    def add_demand_to_model(self, button):
+        demand = 40
+        bid = -404
+        rospy.wait_for_service('/add_demand')
+        d_add = rospy.ServiceProxy('/add_demand', AddDemand)
+        d_add(bid, demand)
+
+
+    def demand(self, event_id):
+        #demand = TrafficDemand
+        #Projected demand
+        demand = [('now', 200, 'Now'),
+            ('plusone', 52, '+1h'),
+            ('plustwo', 652, '+2h'),
+            ('plusthree', 65, '+3h'),
+            ('plusfour', 120, '+4h'),
+           ]
+        return demand
+
+    def stats(self, event_id):
+        #Routing statistics
+        if event_id == 0:
+            stats = [('waitingtime', 0, 'Waiting time'),
+                ('traveltime', 0, 'Travel time'),
+                ('fuelconsumption', 0, 'Fuel consumption'),
+                ('cost', 0, 'Cost'),
+               ]
+        elif event_id == 1:
+            stats = [('waitingtime', 80, 'Waiting time'),
+                ('traveltime', 52, 'Travel time'),
+                ('fuelconsumption', 101, 'Fuel consumption'),
+                ('cost', 65, 'Cost'),
+               ]
+        elif event_id == 2:
+            stats = [('waitingtime', 90, 'Waiting time'),
+                ('traveltime', 78, 'Travel time'),
+                ('fuelconsumption', 150, 'Fuel consumption'),
+                ('cost', 120, 'Cost'),
+               ]
+        elif event_id == 3:
+            stats = [('waitingtime', 43, 'Waiting time'),
+                ('traveltime', 67, 'Travel time'),
+                ('fuelconsumption', 89, 'Fuel consumption'),
+                ('cost', 100, 'Cost'),
+               ]
+        elif event_id == 4:
+            stats = [('waitingtime', 86, 'Waiting time'),
+                ('traveltime', 98, 'Travel time'),
+                ('fuelconsumption', 82, 'Fuel consumption'),
+                ('cost', 100, 'Cost'),
+               ]
+        return stats
+
+    def creator(win, fixed):
+        win.event = gtk.Label("Events ")
+        win.event.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
+
+        dynamic_stats = gtk.Label("Dynamic routing stats")
+        dynamic_stats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+
+        traffic_controls = gtk.Label("Traffic ")
+        traffic_controls.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+
+        passenger_stats = gtk.Label("Passenger stats ")
+        passenger_stats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+
+        #win.add(Eventwindow)
+
+        fixed.add(win.event)
+        fixed.put(passenger_stats, 60, 365)
+        fixed.put(dynamic_stats, 450, 40)
+        fixed.put(traffic_controls, 450, 365)
+
+    def passenger_graph(self, event_id):
+        data = self.demand(event_id)
+
+        #width, height = 100, 100
+        #vbox.set_size_request(width, height)
+
+        barchart = bar_chart.BarChart()
+
+        barchart.title.set_text('Estimated number of passengers upcoming hours')
+        barchart.grid.set_visible(True)
+        barchart.grid.set_line_style(pygtk_chart.LINE_STYLE_DOTTED)
+        barchart.set_mode(bar_chart.MODE_HORIZONTAL)
+
+        for bar_info in data:
+            bar = bar_chart.Bar(*bar_info)
+            bar.set_color(standardgray)
+            barchart.add_bar(bar)
+            barchart.queue_draw()
+
+        self.hbox_graph.pack_start(barchart)
+
+        def cb_bar_clicked(barchart, bar):
+            print "Bar '%s' clicked." % bar.get_label()
+
+        barchart.connect("bar-clicked", cb_bar_clicked)
+        barchart.show()
+        #width, height = 100, 300
+        #self.hbox_graph.set_size_request(width, height)
+
+    def stat_graph(self, event_id):
+        data = self.stats(event_id)
+
+        statchart = bar_chart.BarChart()
+
+        statchart.title.set_text('Impact of dynamic routing')
+        statchart.grid.set_visible(True)
+        statchart.grid.set_line_style(pygtk_chart.LINE_STYLE_DOTTED)
+        statchart.set_mode(bar_chart.MODE_VERTICAL)
+
+        for bar_info in data:
+            bar = bar_chart.Bar(*bar_info)
+            if bar_info[1] <= 100:
+                bar.set_color(green)
+            elif bar_info[1] > 100:
+                bar.set_color(red)
+            statchart.add_bar(bar)
+            #statchart.queue_draw()
+
+        self.hbox_graph.pack_start(statchart, True, True, 0)
+
+        #width, height = 400, 300
+        #box.set_size_request(width, height)
+
+        def cb_bar_clicked(statchart, bar):
+            print "Bar '%s' clicked." % bar.get_label()
+
+        statchart.connect("bar-clicked", cb_bar_clicked)
+        statchart.show()
+
+
+#    def on_redbus_clicked(self, button):
+#        print("\"Red bus\" button was clicked")
+#    #        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -384, toggle_sim: true}\" ")
+#        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -542, toggle_sim: true}\" ")
+
+#    def on_greenbus_clicked(self, button):
+#        print("\"Green bus\" button was clicked")
+#    #        os.system("rosservice call spawn_vehicle \"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 12.0, node_id: -100, toggle_sim: true}\" ")
+#        os.system("rosservice call spawn_vehicle \"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 12.0, node_id: -300, toggle_sim: true}\" ")
+
+#    def on_yellowbus_clicked(self, button):
+#        print("\"Yellow bus\" button was clicked")
+#        os.system("rosservice call spawn_vehicle \"{vehicle_id: 3, class_name: 'Bus', x: 60.0, y: -60.0, yaw: 0.0, v: 15.0, node_id: -220, toggle_sim: true}\" ")
+
+#    def on_stop_clicked(self, button):
+#        print("\"Stop\" button was clicked")
+
+#    def on_log_clicked(self, button):
+#        def on_close_clicked(button):
+#            print("Closing application")
+#            gtk.main_quit()
+#            print("\"Log\" button was clicked")
+#            logwin = gtk.Window()
+#        logwin.set_size_request(500, 500)
+#        vbox = gtk.VBox()
+#        fixed = gtk.Fixed()
+#        logwin.add(vbox)
+#        vbox.add(fixed)
+#        closeButton = gtk.Button("_Close", use_underline=True)
+#        closeButton.connect("clicked", on_close_clicked)
+#        fixed.put(closeButton, 0, 0)
+#        logwin.show_all()
+
+    def on_close_clicked(self, button):
+        print("Closing application")
+        gtk.main_quit()
+
+
+def qualisys_pos(body_id, x, y, yaw):
+    drawingarea = gtk.DrawingArea()
+    drawingarea.set_size_request(600, 300)
+    drawable = drawingarea.window
+
+
+def qualisys_info():
+    """
+    Qualisys data listener.
+    @param qs_body:
+    """
+    stop = False
+
+    def signal_handler(signal, frame):
+        stop = True
+        print "What?"
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    Qs = mocap.Mocap(info=1)
+    bodies = Qs.find_available_bodies(printinfo=1)
+
+    #pick the first valid body
+    id_body = Qs.get_id_from_name("Iris2")
+    body = mocap.Body(Qs, id_body)
+    pose = body.getPose()
+    qsid = pose['id']
+    qsx = pose['x']
+    qsy = pose['y']
+    qsyaw = pose['yaw']
+
+    qualisys_pos(qsid, qsx, qsy, qsyaw)
+
+    #while not stop:
+        #pose = body.getPose()
+
+rospy.init_node('gui', log_level=rospy.WARN)
 win = CMAWindow()
 win.connect("delete-event", gtk.main_quit)
-win.resize(1200, 680)
+#win.resize(1200, 680)
 win.show_all()
 
 gtk.main()

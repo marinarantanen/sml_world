@@ -13,11 +13,12 @@ import math
 
 import rospy
 from sml_modules import bodyclasses
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, WifiVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, Bus, WifiVehicle
 from sml_modules.bus_vehicle_model import BusVehicle
 from sml_world.srv import GetCoordinates
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle
 
+from sml_world.srv import GetTrajectory
+import rospy
 
 class Visualization:
     """
@@ -89,9 +90,17 @@ class Visualization:
         self.load_small_box_image()
         self.load_goal_image()
         self.setup_id_font()
+        self.load_block_image()
         self.load_bus_image()
         self.load_block_image()
         self.show_ids = True
+
+        self.bus_stop_demands = []
+
+        # To ensure that our bars are not overwritten
+        # We define a reset variable to draw every
+        # 100 iterations
+        self.bus_stop_reset = 0
 
 
     def loop_iteration(self, world_state):
@@ -113,13 +122,14 @@ class Visualization:
         # Receive the latest vehicle states information
         self.vehicles_dict = world_state['vehicles']
 
-        self.bus_stops = world_state['bus_stop_ids']
+        self.bus_stops = list(world_state['bus_stop_ids'])
 
-        self.bus_stop_demands = world_state['bus_stop_demands']
-
+        self.new_bus_stop_demands = list(world_state['bus_stop_demands'])
 
         # Draw the the latest vehicle states
         self.display_image()
+
+
         for event in pygame.event.get():
 
             # Checks if the user tried to close the Window
@@ -362,6 +372,7 @@ class Visualization:
 
         return
 
+
     def get_bar_images(self, demand):
         BACKGROUND_BAR_WIDTH = 30
         BAR_HEIGHT = 10
@@ -381,14 +392,15 @@ class Visualization:
         """
         Loads bus stops onto the current map
         """
+
         BACKGROUND_BAR_WIDTH = 30
         BAR_HEIGHT = 10
         for i in range(len(self.bus_stop_demands)):
             stop_id = self.bus_stops[i]
             demand = self.bus_stop_demands[i]
             coords = self.get_node_coordinates(stop_id)
-            coords = self.convert_position_to_image_pixel(coords)
-            self.draw_bus_stop_image(coords[0], coords[1], self.bus_stop_img)
+            # coords = self.convert_position_to_image_pixel(coords[0], coords[1])
+            self.draw_bus_stop_image(coords, self.bus_stop_img)
 
 
             fg_demand_bar, bg_demand_bar = self.get_bar_images(demand) 
@@ -424,6 +436,7 @@ class Visualization:
         self.bus_image = self.get_car_image(
                         self.base_path + '/resources/busOffset.png',
                         bus_width_meters, bus_length_meters)
+
 
     def load_block_image(self):
         """Load the block image."""
@@ -528,10 +541,10 @@ class Visualization:
         """Predefined image location and size"""
 
         # busStop has size 195 x 297
-        stop_image_location = self.base_path + '/resources/busStop.png'
+        stop_image_location = self.base_path + '/resources/bus_stop_5.jpg'
         stop_image = pygame.image.load(stop_image_location)
-        stop_width_meters = 8
-        stop_height_meters = 8 * (195 / 297)
+        stop_width_meters = 14
+        stop_height_meters = 14 * (195 / 297)
         (stop_image_width, stop_image_height) = stop_image.get_size()
 
         stop_image = pygame.image.load(stop_image_location)
@@ -779,13 +792,44 @@ class Visualization:
             self.draw_block(10, 10)
         return
 
+    def trajectory(self, prevpos):
+        poslist = prevpos
+        if len(self.vehicles_dict) > 0:
+            value = dict((key, value) for key, value
+                in self.vehicles_dict.iteritems() if key == 1)
+            vehicle_info = value.values()
+            vehicle_stats = vehicle_info[0].values()
+            x = vehicle_stats[1]
+            y = vehicle_stats[4]
+            [pixel_x, pixel_y] = self.convert_position_to_image_pixel(x, y)
+            pos = [pixel_x, pixel_y]
+            poslist.append(pos)
+        return poslist
+
     def draw_vehicles(self):
         """Iterate over the vehicles in self.vehicles_dict and draw them."""
+
+        red = (255, 0, 0)
+
         for vehicle_id in self.vehicles_dict:
 
             vehicle = self.vehicles_dict[vehicle_id]
 
             vehicle_class_name = vehicle['class_name']
+
+#            def prevpos(self):
+#                prevx = vehicle['x']
+#                prevy = vehicle['y']
+#                [pix_prevx, pix_prevy] = self.convert_position_to_image_pixel(prevx, prevy)
+#                prev = [pix_prevx, pix_prevy]
+#                prevpos.append(prev)
+#            return prevpos
+
+            prevx = vehicle['x']
+            prevy = vehicle['y']
+            [pix_prevx, pix_prevy] = self.convert_position_to_image_pixel(prevx-5, prevy-10)
+            prev = [(pix_prevx, pix_prevy)]
+            # poslist = self.trajectory(prev)
 
             if vehicle_class_name == bodyclasses.QualisysGoal.__name__:
                 self.draw_goal(vehicle['x'], vehicle['y'])
@@ -833,7 +877,7 @@ class Visualization:
                     elif color == 1:
                         self.draw_red_bus(vehicle['x'], vehicle['y'],
                                           vehicle['yaw'])
-
+                        # pygame.draw.lines(self.window, red, True, poslist, 3)
                     elif color == 2:
                         self.draw_green_bus(vehicle['x'], vehicle['y'],
                                             vehicle['yaw'])
@@ -1042,15 +1086,14 @@ class Visualization:
 
         return
 
-    def draw_bus_stop_image(self, stop_x, stop_y, bus_stop_image):
-        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(stop_x, stop_y)
-
+    def draw_bus_stop_image(self, stop_coords, bus_stop_image):
+        [pixel_x, pixel_y] = self.convert_position_to_image_pixel(stop_coords[0], stop_coords[1])
         pos = (int(round(pixel_x)), int(round(pixel_y)))
+
         bus_stop_image.convert()
         self.window.blit(bus_stop_image, pos)
 
         return
-
 
     def draw_block(self, block_x, block_y):
         """
@@ -1161,7 +1204,14 @@ class Visualization:
         # draw the vehicles
         self.draw_vehicles()
         self.draw_events()
+
+        # We are using sum as a key to see if we need to update demands
+        #if sum(self.new_bus_stop_demands) != sum(self.bus_stop_demands) or self.bus_stop_reset == 0:
+        self.bus_stop_demands = self.new_bus_stop_demands
         self.load_bus_stops()
+        self.bus_stop_reset = 0
+
+        self.bus_stop_reset += 1
 
         # Pygame functions to update the visualization
         # window

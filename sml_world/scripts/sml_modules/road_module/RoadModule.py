@@ -159,8 +159,6 @@ class RoadModule(object):
             raise NameError('Unable to find lanelets containing ' + str(osm_node_id))
         return lanelets
 
-
-
     def get_closed_path_from_node_tag(self, osm_node_tag, points_per_meter = 5):
         '''
         Given a node tag, it will compute a closed trajectory that passes through this node.
@@ -197,6 +195,7 @@ class RoadModule(object):
         '''
         Computes the trajectory from one node to another
         '''
+        #TODO: Should these be true or false
         start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, False)
         end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, False)
         containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, False)
