@@ -8,13 +8,12 @@ import os
 import gtk
 import pygtk
 pygtk.require('2.0')
-
 import pygtk_chart
 from pygtk_chart import bar_chart
 #import cairo
 #import pango
 #import pangocairo
-import random
+#import random
 
 from sml_world.msg import TrafficDemand
 
@@ -25,7 +24,7 @@ import signal
 
 green = gtk.gdk.color_parse("green")
 red = gtk.gdk.color_parse("red")
-standardgray = gtk.gdk.Color(red = 25000, green = 25000,blue = 25000, pixel = 0)
+standardgray = gtk.gdk.Color(red=25000, green=25000, blue=25000, pixel=0)
 
 
 class CMAWindow(gtk.Window):
@@ -33,7 +32,7 @@ class CMAWindow(gtk.Window):
 
     def __init__(self):
         gtk.Window.__init__(self)
-        self.set_size_request(1920, 1050)
+        self.set_size_request(1820, 950)
         self.set_position(gtk.WIN_POS_CENTER)
 
         self.base_path = '/home/mma/catkin_ws/src/sml_world/scripts'
@@ -42,8 +41,12 @@ class CMAWindow(gtk.Window):
         self.bkgimagepath = self.base_path + '/resources/bkg_light.png'
         self.bkg.set_from_file(self.bkgimagepath)
 
+        self.head = gtk.Image()
+        self.headimagepath = self.base_path + '/resources/heading.png'
+        self.head.set_from_file(self.headimagepath)
+
         self.statsimage = gtk.Image()
-        self.statsimagepath = self.base_path + '/resources/stats.jpg'
+        self.statsimagepath = self.base_path + '/resources/minimap.png'
         self.statsimage.set_from_file(self.statsimagepath)
 
         self.hbox_graph = gtk.HBox(False, 0)
@@ -53,10 +56,10 @@ class CMAWindow(gtk.Window):
         self.add(self.vbox)
         self.vbox.add(fixed)
 
+        self.vbox.pack_start(self.hbox_info, False, False, 1)
+        self.hbox_info.pack_end(self.statsimage, True, True, 0)
         self.vbox.pack_start(self.hbox_graph, True, True, 0)
 
-        self.vbox.pack_start(self.hbox_info, False, True, 0)
-        self.hbox_info.pack_start(self.statsimage)
 
         #Eventwindow = gtk.Label("Events ")
         #Eventwindow.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
@@ -106,11 +109,10 @@ class CMAWindow(gtk.Window):
         closeButton.connect("clicked", self.on_close_clicked)
 
         Dynstats = gtk.ScrolledWindow()
-        Dynstats.set_size_request(170, 240)
+        Dynstats.set_size_request(430, 240)
         textbuffer = gtk.TextBuffer()
-        textbuffer.set_text('Bus information \n Active buses: '
-                            '\n Requested stops: \n Expected passenger'
-                            '\n change next hour: ')
+        textbuffer.set_text('Bus information \n Active buses: 10 '
+                            '\n Requested stops: \n Waiting time: 5 minutes \n Travel time: 45 minutes')
         textview = gtk.TextView(buffer=textbuffer)
         Dynstats.add(textview)
 
@@ -122,14 +124,13 @@ class CMAWindow(gtk.Window):
         Dynvalues.add(textview2)
 
         self.Passtats = gtk.ScrolledWindow()
-        self.Passtats.set_size_request(170, 240)
+        self.Passtats.set_size_request(430, 240)
         passtext = gtk.TextBuffer()
-        passtext.set_text('Demand / \n Active requests: '
-                          ' \n Expected passenger \n change next hour: ')
+        passtext.set_text('Static bus routing equivalent: \n Active buses: 3 \n Waiting time: 30 minutes \n Travel time: 45 minutes ')
         self.passview = gtk.TextView(buffer=passtext)
         self.Passtats.add(self.passview)
 
-        #fixed.put(self.bkg, 0, 0)
+        fixed.put(self.head, 60, 10)
 
         fixed.put(queueevent, 60, 135)
         fixed.put(roadevent, 60, 250)
@@ -137,29 +138,30 @@ class CMAWindow(gtk.Window):
         fixed.put(heroevent, 180, 135)
         fixed.put(subwayevent, 180, 250)
 
-        fixed.put(closeButton, 60, 400)
+        fixed.put(closeButton, 1360, 135)
 
         #fixed.put(Eventwindow, 60, 40)
         #fixed.put(PassengerStats, 60, 365)
         #fixed.put(DynamicStats, 450, 40)
         #fixed.put(StaticStats, 450, 365)
 
-        fixed.put(Dynstats, 870, 185)
+        fixed.put(Dynstats, 340, 135)
         #fixed.put(Dynvalues, 1041, 185)
-        #fixed.put(self.Passtats, 60, 400)
+        fixed.put(self.Passtats, 775, 135)
 
     def on_queue_clicked(self, button):
         print("\"Queue event\" button was clicked")
-        statsimagepath = self.base_path + '/resources/stats.jpg'
+        statsimagepath = self.base_path + '/resources/minimapQueue.png'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 1
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
+#        os.system("rosservice call spawn_vehicle"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -504, toggle_sim: true}"")
 
     def on_road_clicked(self, button):
         print("\"Road event\" button was clicked")
 #        self.statsimage.set_from_file("jobstats.jpg")
-        statsimagepath = self.base_path + '/resources/jobstats.jpg'
+        statsimagepath = self.base_path + '/resources/minimapBlock.png'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 2
         self.stat_graph(event_id)
@@ -168,7 +170,7 @@ class CMAWindow(gtk.Window):
     def on_home_clicked(self, button):
         print("\"Hero event\" button was clicked")
 #        self.statsimage.set_from_file("homestats.jpg")
-        statsimagepath = self.base_path + '/resources/homestats.jpg'
+        statsimagepath = self.base_path + '/resources/minimapNationalhero.png'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 3
         self.stat_graph(event_id)
@@ -177,7 +179,7 @@ class CMAWindow(gtk.Window):
     def on_concert_clicked(self, button):
         print("\"Subway event\" button was clicked")
 #        self.statsimage.set_from_file("concertstats.jpg")
-        statsimagepath = self.base_path + '/resources/concertstats.jpg'
+        statsimagepath = self.base_path + '/resources/minimapSub.png'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 4
         self.stat_graph(event_id)
@@ -228,7 +230,7 @@ class CMAWindow(gtk.Window):
                ]
         return stats
 
-    def creator(win, fixed):
+    def creator(self, fixed):
         win.event = gtk.Label("Events ")
         win.event.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
 
@@ -248,11 +250,41 @@ class CMAWindow(gtk.Window):
         fixed.put(dynamic_stats, 450, 40)
         fixed.put(traffic_controls, 450, 365)
 
+    def stat_graph(self, event_id):
+        data = self.stats(event_id)
+
+        statchart = bar_chart.BarChart()
+
+        statchart.title.set_text('Impact of dynamic routing')
+        statchart.grid.set_visible(True)
+        statchart.grid.set_line_style(pygtk_chart.LINE_STYLE_DOTTED)
+        statchart.set_mode(bar_chart.MODE_VERTICAL)
+
+        for bar_info in data:
+            bar = bar_chart.Bar(*bar_info)
+            if bar_info[1] <= 100:
+                bar.set_color(green)
+            elif bar_info[1] > 100:
+                bar.set_color(red)
+            statchart.add_bar(bar)
+            #statchart.queue_draw()
+
+        for widget in self.hbox_graph.get_children():
+            self.hbox_graph.remove(widget)
+
+        self.hbox_graph.pack_start(statchart, True, True, 0)
+
+        #width, height = 400, 300
+        #box.set_size_request(width, height)
+
+        def cb_bar_clicked(statchart, bar):
+            print "Bar '%s' clicked." % bar.get_label()
+
+        statchart.connect("bar-clicked", cb_bar_clicked)
+        statchart.show()
+
     def passenger_graph(self, event_id):
         data = self.demand(event_id)
-
-        #width, height = 100, 100
-        #vbox.set_size_request(width, height)
 
         barchart = bar_chart.BarChart()
 
@@ -274,38 +306,8 @@ class CMAWindow(gtk.Window):
 
         barchart.connect("bar-clicked", cb_bar_clicked)
         barchart.show()
-        #width, height = 100, 300
-        #self.hbox_graph.set_size_request(width, height)
 
-    def stat_graph(self, event_id):
-        data = self.stats(event_id)
 
-        statchart = bar_chart.BarChart()
-
-        statchart.title.set_text('Impact of dynamic routing')
-        statchart.grid.set_visible(True)
-        statchart.grid.set_line_style(pygtk_chart.LINE_STYLE_DOTTED)
-        statchart.set_mode(bar_chart.MODE_VERTICAL)
-
-        for bar_info in data:
-            bar = bar_chart.Bar(*bar_info)
-            if bar_info[1] <= 100:
-                bar.set_color(green)
-            elif bar_info[1] > 100:
-                bar.set_color(red)
-            statchart.add_bar(bar)
-            #statchart.queue_draw()
-
-        self.hbox_graph.pack_start(statchart, True, True, 0)
-
-        #width, height = 400, 300
-        #box.set_size_request(width, height)
-
-        def cb_bar_clicked(statchart, bar):
-            print "Bar '%s' clicked." % bar.get_label()
-
-        statchart.connect("bar-clicked", cb_bar_clicked)
-        statchart.show()
 
 
 #    def on_redbus_clicked(self, button):
