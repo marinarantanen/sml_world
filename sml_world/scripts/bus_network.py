@@ -19,7 +19,7 @@ from sml_world.srv import GetMapLocation, GetMapLocationResponse
 from sml_world.srv import StartBusRoute, StartBusRouteResponse
 from sml_modules.bus_vehicle_model import BusVehicle
 from sml_world.msg import BusInformation, BusStops
-from sml_world.srv import SpawnVehicle, CalculateRoute, CalculateRouteResponse
+from sml_world.srv import SpawnVehicle
 from sml_world.srv import BusRouting, BusRoutingResponse
 from sml_modules.demand_model import DemandModel
 
@@ -28,7 +28,7 @@ from sml_modules.demand_model import DemandModel
 class BusNetworkModule(RoadModule):
 	"""
 	Extention of the RoadModule class to describe bus stop locations
-	args: 
+	args:
 	"""
 
 	def __init__(self, file_location):
@@ -90,13 +90,13 @@ class BusNetworkModule(RoadModule):
 		self.bus_stop_status = BusStops()
 		self.bus_stop_status.bus_stops = self.bus_station_nodes
 		self.get_and_publish_demands(None)
-		
+
 		#Example how to add bus:
 		self.add_bus(181, self.bus_station_nodes, -282)
 		#Example how to add demand (use negatives to subtract)
 		self.add_demand(-282, 10)
 
-		rospy.Subscriber('update_demand_stats', 
+		rospy.Subscriber('update_demand_stats',
 						BusStops, self.get_and_publish_demands)
 
 
@@ -190,7 +190,7 @@ class BusNetworkModule(RoadModule):
 		if start_node in responsible_nodes:
 			cycle.append(start_node)
 			dist += self.distance_dict[(cur_node, start_node)]
-		
+
 		return cycle
 		'''
 
@@ -214,7 +214,7 @@ class BusNetworkModule(RoadModule):
 				path_found = ret[1]
 				path_found.insert(0, start_node)
 				possible_paths.append((cost_found, path_found))
-		
+
 		if not possible_paths:
 			return (float('inf'), possible_paths)
 		return min(possible_paths, key = lambda t: t[0])
