@@ -99,7 +99,7 @@ class Visualization:
 
         # To ensure that our bars are not overwritten
         # We define a reset variable to draw every
-        # 100 iterations
+        # 10 iterations
         self.bus_stop_reset = 0
 
 
@@ -124,7 +124,8 @@ class Visualization:
 
         self.bus_stops = list(world_state['bus_stop_ids'])
 
-        self.new_bus_stop_demands = list(world_state['bus_stop_demands'])
+        self.bus_stop_demands = list(world_state['bus_stop_demands'])
+
 
         # Draw the the latest vehicle states
         self.display_image()
@@ -399,6 +400,7 @@ class Visualization:
             stop_id = self.bus_stops[i]
             demand = self.bus_stop_demands[i]
             coords = self.get_node_coordinates(stop_id)
+            # rospy.logwarn('Coords are ' + str(coords))
             # coords = self.convert_position_to_image_pixel(coords[0], coords[1])
             self.draw_bus_stop_image(coords, self.bus_stop_img)
 
@@ -414,6 +416,16 @@ class Visualization:
 
             self.window.blit(fg_demand_bar, pos)
             self.window.blit(bg_demand_bar, pos)
+
+            text_x = coords[0] + 2
+            text_y = coords[1] - 9
+            [pixel_x, pixel_y] = self.convert_position_to_image_pixel(text_x, text_y)
+            pos = (int(round(pixel_x)), int(round(pixel_y)))
+
+
+            font = pygame.font.Font(None, 20)
+            text = font.render(str(-stop_id), 1, (255,255,255))
+            self.window.blit(text, pos)
 
     def get_node_coordinates(self, node_id):
         '''
@@ -1207,9 +1219,9 @@ class Visualization:
 
         # We are using sum as a key to see if we need to update demands
         #if sum(self.new_bus_stop_demands) != sum(self.bus_stop_demands) or self.bus_stop_reset == 0:
-        self.bus_stop_demands = self.new_bus_stop_demands
-        self.load_bus_stops()
-        self.bus_stop_reset = 0
+        if self.bus_stop_reset == 10:
+            self.load_bus_stops()
+            self.bus_stop_reset = 0
 
         self.bus_stop_reset += 1
 

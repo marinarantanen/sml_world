@@ -76,25 +76,24 @@ class BusNetworkModule(RoadModule):
 				else:
 					self.distance_dict[(i, j)] = 0
 
+		rospy.logwarn(self.distance_dict)
+
 		self.demand_model = DemandModel()
 		for nodeid in self.bus_station_nodes:
 			self.demand_model.register_bus_stop(nodeid, 50)
 
 		# Wait until sml world is running
 		rospy.wait_for_service('spawn_vehicle')
-		#Sleep for 10 ms because concurrency is hard
-		r = rospy.Rate(10)
-		r.sleep()
-
 
 		self.bus_stop_status = BusStops()
 		self.bus_stop_status.bus_stops = self.bus_station_nodes
 		self.get_and_publish_demands(None)
 		
+		rospy.logwarn(self.bus_station_nodes)
 		#Example how to add bus:
 		self.add_bus(181, self.bus_station_nodes, -282)
 		#Example how to add demand (use negatives to subtract)
-		self.add_demand(-282, 10)
+		self.add_demand(-885, 10)
 
 		rospy.Subscriber('update_demand_stats', 
 						BusStops, self.get_and_publish_demands)
@@ -117,11 +116,14 @@ class BusNetworkModule(RoadModule):
 	def add_demand(self, node, num):
 		self.demand_model.add_demand(node, num)
 
+	def service_add_bus(self, req):
+		stops = list(req.stops)
+		self.add_bus(req.busid, stops, req.startnode)
 
 	def add_bus(self, bus_id, responsible_nodes, startnode):
 		'''
 		Service for adding a bus with a list of nodes that it is responsible for
-		picking up passengers from
+		picking up passengers from the defined stops
 		'''
 		for node in responsible_nodes:
 			if not node in self.bus_station_nodes:
@@ -129,10 +131,10 @@ class BusNetworkModule(RoadModule):
 
 		self.responsible_nodes_by_bus[bus_id] = responsible_nodes
 
-		bus_launch_service = '/spawn_vehicle'
-		rospy.wait_for_service(bus_launch_service)
+		spawn_vehicle = '/spawn_vehicle'
+		rospy.wait_for_service(spawn_vehicle)
 		try:
-			bus_launch = rospy.ServiceProxy(bus_launch_service, SpawnVehicle)
+			bus_launch = rospy.ServiceProxy(spawn_vehicle, SpawnVehicle)
 			# All the 0s will be unused in bus creation because startnode accounts for it
 			response = bus_launch(bus_id, BusVehicle.__name__, 0, 0, 20, 20., None, True)
 		except rospy.ServiceException, e:
@@ -168,12 +170,16 @@ class BusNetworkModule(RoadModule):
 		nodes_left = list(responsible_nodes)
 
 		#Explicitly define first move since starting node may not be a bus stop
+		#However, we will magically transport it to the first bus stop in order
+		#to it look nice visually
 		possible_first_moves = [(i, self.get_path_distance_between_node_ids(start_node, i))
 													for i in nodes_left]
 		min_first_move = min(possible_first_moves, key = lambda t: t[1])
 		cur_node = min_first_move[0]
 		dist += min_first_move[1]
 		ret = self.calculate_best_cycle_exhaustively(responsible_nodes, cur_node)
+
+		rospy.logwarn('cycle created is ' + str(ret[1]))
 		return ret[1]
 
 		'''
@@ -224,7 +230,7 @@ def bus_network(file_location):
 	rospy.init_node('bus_network')
 	bus_module = BusNetworkModule(file_location)
 	rospy.Service('/start_bus_route', StartBusRoute,
-		bus_module.add_bus)
+		bus_module.service_add_bus)
 	rospy.Subscriber('/bus_information', BusInformation,
 				bus_module.bus_information_update)
 	rospy.spin()

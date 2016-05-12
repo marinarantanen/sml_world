@@ -148,7 +148,7 @@ class RoadModuleExtend(RoadModule):
                     the ID of the node nearest to the sent coordinates.
         """
         #Find the connected node group that containes the original node
-        return GetCoordinatesResponse(self.node_to_xy[req.node_id][0], self.node_to_xy[req.node_id][0])
+        return GetCoordinatesResponse(self.node_to_xy[req.node_id][0], self.node_to_xy[req.node_id][1])
 
 
 def road_network(file_location):

@@ -9,13 +9,15 @@ Created on Mar 5, 2016
 import rospy
 from sml_modules.vehicle_models import BaseVehicle
 from sml_world.srv import SetDestination
-from sml_world.srv import GetNearestNodeId, BusRouting
+from sml_world.srv import GetNearestNodeId, BusRouting, AddDemand
 from sml_world.msg import BusInformation
 from sml_world.srv import GetCoordinates, SetDestination, SetDestinationResponse, SetVehicleState
 
-import copy
+from copy import deepcopy
 
-# Should we inherit from another vehicle class
+WAIT_AT_BUS_STATION_DURATION = 3
+
+
 class BusVehicle(BaseVehicle):
 	def __init__(self, namespace, vehicle_id, simulation_rate,
                  x=0., y=0., yaw=0., v=10.):
@@ -34,29 +36,47 @@ class BusVehicle(BaseVehicle):
 
 		while self.stops == None:
 			i = 0
-		#set destination takes one arg with one value, dest_id
-		startnode = self.stops.pop()
-		(self.x, self.y) = self.get_node_coordinates(startnode)
+
+		rospy.logwarn('Stops order is ' + str(self.stops))
+		self.cur_destination = self.stops.pop(0)
+		(self.x, self.y) = self.get_node_coordinates(self.cur_destination)
 		req = type("SetState", (object,),{})
 		setattr(req, 'x', self.x)
 		setattr(req, 'y', self.y)  
 		setattr(req, 'yaw', 0)  
 		setattr(req, 'v', 10)
 		self.handle_set_state(req)
-		self.go_to_node(self.stops.pop(), startnode)
+
+		self.go_to_node(self.cur_destination)
 
 
 	def simulation_step(self):
 		super(BusVehicle, self).simulation_step()
 		if self.at_dest:
 			#Stop to allow for passengers to get on/off
-			rospy.logwarn('AT DESTINATION')
 			saved_v = self.v
 			self.v = 0
+			req = type("SetState", (object,),{})
+			setattr(req, 'speed', 0)
+			self.handle_set_speed_kph(req)
+			super(BusVehicle, self).simulation_step()
+
+			# "Remove" some demand at that bus station
+			self.add_demand_to_model(self.cur_destination, -20)
+			rospy.sleep(WAIT_AT_BUS_STATION_DURATION)
+			setattr(req, 'speed', 56)
+			self.handle_set_speed_kph(req)
 			if not self.stops:
-				rospy.logwarn('requesting new stops')
 				self.request_new_stops()
-			self.go_to_node(self.stops.pop())
+			new_dest = self.stops.pop(0)
+			self.go_to_node(new_dest, self.cur_destination)
+			self.cur_destination = new_dest
+
+	def add_demand_to_model(self, bus_id, demand_added):
+		rospy.wait_for_service('/add_demand')
+		d_add = rospy.ServiceProxy('/add_demand', AddDemand)
+		d_add(bus_id, demand_added)
+
 
 	def request_new_stops(self):
 		'''
@@ -79,7 +99,7 @@ class BusVehicle(BaseVehicle):
 		#Central system will now calculate a new route and respond to it
 
 	def set_new_route(self, new_route):
-		self.stops = copy.deepcopy(new_route)
+		self.stops = deepcopy(new_route)
 
 	def go_to_node(self, node_id, origin_id = 0):
 		'''
@@ -91,7 +111,6 @@ class BusVehicle(BaseVehicle):
 		dest = SetDestination()
 		dest.origin_id = origin_id
 		dest.dest_id = node_id
-		rospy.logwarn(dest)
 		super(BusVehicle, self).handle_set_destination(dest)
 
 		#set_dest = rospy.ServiceProxy(self.namespace + 'set_destination', SetDestination)

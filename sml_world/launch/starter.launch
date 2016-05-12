@@ -1,6 +1,6 @@
 <launch>
-    <node pkg="sml_world" name="road_network" type="road_network.py" args="/resources/scenarios/HighwaySML_save" />
+    <node pkg="sml_world" name="road_network" type="road_network.py" args="/resources/scenarios/KistaDemo" />
     <node pkg="sml_world" name="visualization" type="visualization.py" />
     <node pkg="sml_world" name="sml_world_central" type="sml_world_central.py" />
-    <node pkg="sml_world" name="bus_network_central" type="bus_network.py" args="/resources/scenarios/HighwaySML_save" />
+    <node pkg="sml_world" name="bus_network_central" type="bus_network.py" args="/resources/scenarios/KistaDemo" />
 </launch>
