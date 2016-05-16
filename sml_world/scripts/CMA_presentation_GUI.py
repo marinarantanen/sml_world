@@ -44,8 +44,12 @@ class CMAWindow(gtk.Window):
         self.bkg.set_from_file(self.bkgimagepath)
 
         self.head = gtk.Image()
-        self.headimagepath = self.base_path + '/resources/heading.png'
+        self.headimagepath = self.base_path + '/resources/heading.jpg'
         self.head.set_from_file(self.headimagepath)
+
+        self.foot = gtk.Image()
+        self.footimagepath = self.base_path + '/resources/footer.jpg'
+        self.foot.set_from_file(self.footimagepath)
 
         self.statsimage = gtk.Image()
         self.statsimagepath = self.base_path + '/resources/minimap.png'
@@ -103,11 +107,13 @@ class CMAWindow(gtk.Window):
         subwayevent.set_size_request(110, 110)
         subwayevent.connect("clicked", self.on_sub_clicked)
 
-        closeButton = gtk.Button("_Close", use_underline=True)
-        blacklabel = closeButton.get_children()[0]
-        closeButton.modify_bg(gtk.STATE_NORMAL, standardgray)
-        blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-        closeButton.set_size_request(187, 44)
+        closeButton = gtk.Button()
+        #closeButton = gtk.Button("_Close", use_underline=True)
+        #blacklabel = closeButton.get_children()[0]
+        #closeButton.modify_bg(gtk.STATE_NORMAL, standardgray)
+        #blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        #closeButton.set_size_request(187, 44)
+        closeButton.set_image(self.foot)
         closeButton.connect("clicked", self.on_close_clicked)
 
         Dynstats = gtk.ScrolledWindow()
@@ -140,7 +146,7 @@ class CMAWindow(gtk.Window):
         fixed.put(heroevent, 180, 135)
         fixed.put(subwayevent, 180, 250)
 
-        fixed.put(closeButton, 1360, 135)
+        fixed.put(closeButton, 1350, 10)
 
         #fixed.put(Eventwindow, 60, 40)
         #fixed.put(PassengerStats, 60, 365)
@@ -195,11 +201,11 @@ class CMAWindow(gtk.Window):
     def demand(self, event_id):
         #demand = TrafficDemand
         #Projected demand
-        demand = [('now', 200, 'Now'),
+        demand = [('now', 100, 'Now'),
             ('plusone', 52, '+1h'),
-            ('plustwo', 652, '+2h'),
+            ('plustwo', 20, '+2h'),
             ('plusthree', 65, '+3h'),
-            ('plusfour', 120, '+4h'),
+            ('plusfour', 78, '+4h'),
            ]
         return demand
 
