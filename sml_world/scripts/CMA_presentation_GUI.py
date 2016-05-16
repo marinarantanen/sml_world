@@ -15,8 +15,7 @@ from pygtk_chart import bar_chart
 #import pangocairo
 #import random
 
-from sml_world.msg import TrafficDemand
-from sml_world.srv import AddDemand
+from sml_world.srv import AddDemand, StartBusRoute
 import rospy
 
 import mocap
@@ -37,7 +36,7 @@ class CMAWindow(gtk.Window):
         self.set_size_request(1820, 950)
         self.set_position(gtk.WIN_POS_CENTER)
 
-        self.base_path = '/home/mma/catkin_ws/src/sml_world/scripts'
+        self.base_path = '/home/dcarballal/catkin/src/sml_world/scripts'
 
         self.bkg = gtk.Image()
         self.bkgimagepath = self.base_path + '/resources/bkg_light.png'
@@ -176,18 +175,17 @@ class CMAWindow(gtk.Window):
         self.passenger_graph(event_id)
 
     def on_hero_clicked(self, button):
-        print("\"Hero event\" button was clicked")
-#        self.statsimage.set_from_file("homestats.jpg")
-        statsimagepath = self.base_path + '/resources/minimapNationalhero.png'
-        self.statsimage.set_from_file(statsimagepath)
-        event_id = 3
-        self.stat_graph(event_id)
-        self.passenger_graph(event_id)
-        demand = 40
-        bid = -404
+        self.add_demand_to_model(-326, 40)
+        self.add_demand_to_model(-386, 30)
+        self.add_demand_to_model(-468, 20)
+        rospy.wait_for_service('/start_bus_route')
+        start_bus = rospy.ServiceProxy('/start_bus_route', StartBusRoute)
+        start_bus([-326,-386,-468], 814, -468)
+
+    def add_demand_to_model(self, bus_id, demand_added):
         rospy.wait_for_service('/add_demand')
         d_add = rospy.ServiceProxy('/add_demand', AddDemand)
-        d_add(bid, demand)
+        d_add(bus_id, demand_added)
 
     def on_sub_clicked(self, button):
         print("\"Subway event\" button was clicked")

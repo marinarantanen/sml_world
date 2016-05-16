@@ -91,8 +91,6 @@ class BusNetworkModule(RoadModule):
 		rospy.Subscriber('update_demand_stats', 
 						BusStops, self.get_and_publish_demands)
 
-		rospy.spin()
-
 
 	def handle_get_map_location(self, req):
 		"""
