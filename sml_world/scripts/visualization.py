@@ -22,6 +22,7 @@ from sml_world.srv import GetMapLocation
 
 from sml_modules.visualization_module import Visualization
 
+INITIAL_TIME = 0
 
 def qualisys_info():
     """
@@ -77,6 +78,7 @@ def update_state(ws, vis_module):
         ws_dict['vehicles'][vs.vehicle_id]['yaw'] = vs.yaw
     ws_dict['bus_stop_ids'] = ws.bus_stop_ids
     ws_dict['bus_stop_demands'] = ws.bus_stop_demands
+    ws_dict['time'] = ws.time
     vis_module.loop_iteration(ws_dict)
 
     for td in ws.traffic_demand:
@@ -108,10 +110,10 @@ if __name__ == '__main__':
     except rospy.ServiceException, e:
         raise "Service call failed: %s" % e
     # Initialize the visualization module
-    vis_module = Visualization(base_path, map_location, 800, 600, 5, True)
-#    vis_module = Visualization(base_path, map_location, 1820, 1380, 5, True)
+    #vis_module = Visualization(base_path, map_location, 960, 720, 5, True)
+    vis_module = Visualization(base_path, map_location, 1600, 1200, 5, True)
     print "vis_module_started."
     #First loop with empty values
-    vis_module.loop_iteration({'vehicles' : {}, 'bus_stop_ids' : [], 'bus_stop_demands' : []})
+    vis_module.loop_iteration({'vehicles' : {}, 'bus_stop_ids' : [], 'bus_stop_demands' : [], 'time': INITIAL_TIME})
     visualizer(vis_module)
     qualisys_info()

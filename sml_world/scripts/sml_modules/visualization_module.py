@@ -13,7 +13,7 @@ import math
 
 import rospy
 from sml_modules import bodyclasses
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, Bus, WifiVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, WifiVehicle
 from sml_modules.bus_vehicle_model import BusVehicle
 from sml_world.srv import GetCoordinates
 
@@ -93,9 +93,12 @@ class Visualization:
         self.load_block_image()
         self.load_bus_image()
         self.load_block_image()
+        self.load_big_red_x_image()
+
         self.show_ids = True
 
         self.bus_stop_demands = []
+        self.closed_bus_stops = []
 
         # To ensure that our bars are not overwritten
         # We define a reset variable to draw every
@@ -126,8 +129,9 @@ class Visualization:
 
         self.bus_stop_demands = list(world_state['bus_stop_demands'])
 
-
+        self.time = world_state['time']
         # Draw the the latest vehicle states
+
         self.display_image()
 
 
@@ -375,7 +379,7 @@ class Visualization:
 
 
     def get_bar_images(self, demand):
-        BACKGROUND_BAR_WIDTH = 30
+        BACKGROUND_BAR_WIDTH = 60
         BAR_HEIGHT = 10
 
         background_image = pygame.image.load(self.base_path 
@@ -388,6 +392,16 @@ class Visualization:
 
         return pygame.transform.scale(background_image, bg_new_size), pygame.transform.scale(foreground_image,fg_new_size)
 
+    def kista_move_bus_stops_off_road(self, bus_id, tup):
+        x,y = tup
+        return {
+            -450: (x - 13, y - 5),
+            -386: (x, y - 8),
+            -326: (x - 7, y - 11),
+            -468: (x + 7, y - 3),
+            -742: (x, y - 7),
+            -298: (x + 3, y - 5)
+        }.get(bus_id, (x,y))
 
     def load_bus_stops(self):
         """
@@ -400,8 +414,7 @@ class Visualization:
             stop_id = self.bus_stops[i]
             demand = self.bus_stop_demands[i]
             coords = self.get_node_coordinates(stop_id)
-            # rospy.logwarn('Coords are ' + str(coords))
-            # coords = self.convert_position_to_image_pixel(coords[0], coords[1])
+            coords = self.kista_move_bus_stops_off_road(stop_id, coords)
             self.draw_bus_stop_image(coords, self.bus_stop_img)
 
 
@@ -418,12 +431,12 @@ class Visualization:
             self.window.blit(bg_demand_bar, pos)
 
             text_x = coords[0] + 2
-            text_y = coords[1] - 9
+            text_y = coords[1] - 10
             [pixel_x, pixel_y] = self.convert_position_to_image_pixel(text_x, text_y)
             pos = (int(round(pixel_x)), int(round(pixel_y)))
 
 
-            font = pygame.font.Font(None, 20)
+            font = pygame.font.Font(None, 30)
             text = font.render(str(-stop_id), 1, (255,255,255))
             self.window.blit(text, pos)
 
@@ -440,6 +453,14 @@ class Visualization:
         except rospy.ServiceException, e:
             raise "Service call failed: %s" % e
         return (coords.x, coords.y)
+
+    def load_big_red_x_image(self):
+        width = 10
+        height = 10
+
+        self.big_red_x = self.get_car_image(
+                        self.base_path + '/resources/big_red_x.png',
+                        width, height)
 
     def load_bus_image(self):
         bus_width_meters = 2.55
@@ -878,30 +899,6 @@ class Visualization:
                     elif color == 4:
                         self.draw_red_car(vehicle['x'], vehicle['y'],
                                           vehicle['yaw'])
-            elif (vehicle_class_name == Bus.__name__):
-                if vehicle_id > -100:
-                    color = vehicle_id % 4
-
-                    if color == 0:
-                        self.draw_bus(vehicle['x'], vehicle['y'],
-                                      vehicle['yaw'])
-
-                    elif color == 1:
-                        self.draw_red_bus(vehicle['x'], vehicle['y'],
-                                          vehicle['yaw'])
-                        # pygame.draw.lines(self.window, red, True, poslist, 3)
-                    elif color == 2:
-                        self.draw_green_bus(vehicle['x'], vehicle['y'],
-                                            vehicle['yaw'])
-
-                    elif color == 3:
-                        self.draw_yellow_bus(vehicle['x'], vehicle['y'],
-                                             vehicle['yaw'])
-
-            # elif vehicle_class_name == smartvehicle.SmartVehicle.__name__:
-
-            # self.draw_smart_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
-
             else:
 
                 print "vehicle_class_name = " + str(vehicle_class_name)
@@ -1204,6 +1201,27 @@ class Visualization:
                                    surface_width, surface_height])
         return
 
+    def draw_title(self):
+        title_pos = (500,0)
+        subtitle_pos = (610, 60)
+
+        title_font = pygame.font.Font(None, 70)
+        subtitle_font = pygame.font.Font(None, 30)
+        title = title_font.render("The Custom Commute", 1, (255,255,255))
+        subtitle = subtitle_font.render("Smart Bussing for a Smart City", 1, (255,255,255))
+        self.window.blit(title, title_pos)
+        self.window.blit(subtitle, subtitle_pos)
+
+    def draw_clock(self):
+        clock_pos = (0,0)
+
+        clock_font = pygame.font.Font(None, 40)
+        #text = clock_font.render("%02d"%self.time/100 + ":" + "%02d"%self.time%100, 1, (255,255,255))
+        text = clock_font.render("%02d:%02d"% divmod(self.time, 100), 1, (255,255,255))
+        self.window.blit(text, clock_pos)
+
+
+
     def display_image(self):
         """Call the methods needed to refresh and display the current image."""
         # First, redraw the image to be the original
@@ -1215,12 +1233,13 @@ class Visualization:
         # Once the background is drawn,
         # draw the vehicles
         self.draw_vehicles()
-        self.draw_events()
+        #self.draw_events()
 
         # We are using sum as a key to see if we need to update demands
         #if sum(self.new_bus_stop_demands) != sum(self.bus_stop_demands) or self.bus_stop_reset == 0:
-        if self.bus_stop_reset == 10:
+        if self.bus_stop_reset == 30:
             self.load_bus_stops()
+            self.draw_title()
             self.bus_stop_reset = 0
 
         self.bus_stop_reset += 1
@@ -1230,6 +1249,8 @@ class Visualization:
         pygame.display.flip()
         pygame.event.pump()
 
+        self.draw_clock()
+        
         return
 
     def convert_position_to_image_pixel(self, x_pos, y_pos):

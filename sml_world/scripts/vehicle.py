@@ -12,7 +12,7 @@ import sys
 
 import rospy
 
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, Bus, WifiVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, WifiVehicle
 from sml_modules.bus_vehicle_model import BusVehicle
 
 
@@ -37,8 +37,6 @@ def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
     elif vehicle_class == DummyVehicle.__name__:
         DummyVehicle(rospy.get_namespace(), vehicle_id, 20,
                      x, y, yaw, speed_in_ms)
-    elif vehicle_class == Bus.__name__:
-        Bus(rospy.get_namespace(), vehicle_id, 20, x, y, yaw, speed_in_ms)
     elif vehicle_class == WifiVehicle.__name__:
         WifiVehicle(rospy.get_namespace(), vehicle_id, 20,
                     x, y, yaw, speed_in_ms)

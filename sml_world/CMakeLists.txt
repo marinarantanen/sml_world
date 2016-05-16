@@ -57,6 +57,7 @@ add_message_files(
   BusStops.msg
   BusInformation.msg
   BusCommands.msg
+  GetTime.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -78,6 +79,8 @@ add_service_files(
   GetCoordinates.srv
   AddDemand.srv
   BusRouting.srv
+  CloseBusStop.srv
+  
   )
 
 ## Generate actions in the 'action' folder

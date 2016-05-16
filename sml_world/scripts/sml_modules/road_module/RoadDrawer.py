@@ -54,7 +54,7 @@ def create_world_surface(road_module, image_width, image_height):
 
     # Apply the forest_rescaled pattern to the world_surface, in
     # the region defined by mask
-    repeat_pattern(world_surface, forest_image_rescaled, forest_mask, brightness = 0.7)
+    repeat_pattern(world_surface, forest_image_rescaled, forest_mask, brightness = 0.9)
 
     ''' Drawing roads'''
     # Load the image

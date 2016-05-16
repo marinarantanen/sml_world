@@ -30,7 +30,6 @@ class BusNetworkModule(RoadModule):
 		#Get all tags with stop tag
 		self.bus_station_nodes = self.osm_node_tag_dict['stop']
 		self.num_stops = self.bus_station_nodes.length
-		rospy.loginfo("This is a message")
 		self.distance_matrix = np.zeros((self.num_stops, self.num_stops)) 
 		for i in range(self.num_stops):
 			for j in range(self.num_stops):

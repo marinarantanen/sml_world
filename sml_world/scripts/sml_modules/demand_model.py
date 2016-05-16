@@ -8,7 +8,9 @@ Theoretically this represents the number of passengers per hour
 
 import rospy
 from sml_world.srv import AddDemand, AddDemandResponse
-from sml_world.msg import BusStops
+from sml_world.msg import BusStops, GetTime
+from threading import Thread
+import time
 
 class DemandModel():
 	def __init__(self):
@@ -20,8 +22,14 @@ class DemandModel():
 
 		#Publisher that will inform the bus network to update it's demand stats
 		self.pub_state = rospy.Publisher('/update_demand_stats', BusStops, queue_size=5)
+		self.klockan = SMLClock(0)
 
+		
 
+	def min_tick(self):
+		time.sleep(1)
+		self.klockan.increment_min()
+		self.min_tick()
 
 	def register_bus_stop(self, bus_stop_id, initial_demand):
 		self.demand_dict[bus_stop_id] = initial_demand
@@ -56,5 +64,29 @@ class DemandModel():
 
 	def add_demand_request(self, data):
 		self.add_demand(data.bus_id, data.demand_change)
-		rospy.logwarn('Success!')
 		return AddDemandResponse()
+
+#Simple clock class used by DemandModel to model variance throughout the day
+#It uses a simple int32 to talk into and out of.
+#For example time= 1356 means the time is 13:56  
+class SMLClock():
+	def __init__(self, starttime):
+		self.cur_time = starttime
+		self.publisher = rospy.Publisher('/get_time', GetTime, queue_size=5)
+		loop_thread = Thread(target=self.loop)
+		loop_thread.start()
+
+
+	def loop(self):
+		while True:
+			self.increment_min()
+			time.sleep(1)
+
+	def increment_min(self):
+		cur_min = self.cur_time
+		if cur_min == 60:
+			cur_hour = self.cur_time/100
+			self.cur_time = ((cur_hour + 1) % 24) * 100
+		self.publisher.publish(GetTime(self.cur_time))
+
+

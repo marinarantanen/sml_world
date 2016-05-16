@@ -36,8 +36,6 @@ class BusVehicle(BaseVehicle):
 
 		while self.stops == None:
 			i = 0
-
-		rospy.logwarn('Stops order is ' + str(self.stops))
 		self.cur_destination = self.stops.pop(0)
 		(self.x, self.y) = self.get_node_coordinates(self.cur_destination)
 		req = type("SetState", (object,),{})
@@ -62,9 +60,9 @@ class BusVehicle(BaseVehicle):
 			super(BusVehicle, self).simulation_step()
 
 			# "Remove" some demand at that bus station
-			self.add_demand_to_model(self.cur_destination, -20)
 			rospy.sleep(WAIT_AT_BUS_STATION_DURATION)
-			setattr(req, 'speed', 56)
+			self.add_demand_to_model(self.cur_destination, -20)
+			setattr(req, 'speed', 45)
 			self.handle_set_speed_kph(req)
 			if not self.stops:
 				self.request_new_stops()

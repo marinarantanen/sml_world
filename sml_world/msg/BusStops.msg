@@ -2,3 +2,4 @@
 
 int32[] bus_stops
 int32[] bus_stop_demands
+int32[] closed_bus_stops

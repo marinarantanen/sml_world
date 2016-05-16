@@ -20,7 +20,7 @@ from sml_world.srv import StartBusRoute, StartBusRouteResponse
 from sml_modules.bus_vehicle_model import BusVehicle
 from sml_world.msg import BusInformation, BusStops
 from sml_world.srv import SpawnVehicle, CalculateRoute, CalculateRouteResponse
-from sml_world.srv import BusRouting, BusRoutingResponse
+from sml_world.srv import BusRouting, BusRoutingResponse, CloseBusStop
 from sml_modules.demand_model import DemandModel
 
 
@@ -31,22 +31,18 @@ class BusNetworkModule(RoadModule):
 	args: 
 	"""
 
-	def __init__(self, file_location):
+	def __init__(self):
 
-		'''
 		rospy.wait_for_service('/get_map_location')
 		try:
 			get_map = rospy.ServiceProxy('/get_map_location', GetMapLocation)
 			resp = get_map()
 			base_path = resp.base_path
-			map_location = resp.map_location
-			file_location = base_path + map_location
+			file_location = resp.map_location
 		except rospy.ServiceException, e:
 			raise "Service call failed: %s" % e
-		'''
-		self.map_location = file_location
-		self.base_path = os.path.dirname(__file__)
-		super(BusNetworkModule, self).__init__(self.base_path, file_location)
+
+		super(BusNetworkModule, self).__init__(base_path, file_location)
 
 		#Get all id tags with stop tag
 		self.bus_station_nodes = self.osm_node_tag_dict['stop']
@@ -76,8 +72,6 @@ class BusNetworkModule(RoadModule):
 				else:
 					self.distance_dict[(i, j)] = 0
 
-		rospy.logwarn(self.distance_dict)
-
 		self.demand_model = DemandModel()
 		for nodeid in self.bus_station_nodes:
 			self.demand_model.register_bus_stop(nodeid, 50)
@@ -91,12 +85,13 @@ class BusNetworkModule(RoadModule):
 		
 		rospy.logwarn(self.bus_station_nodes)
 		#Example how to add bus:
-		self.add_bus(181, self.bus_station_nodes, -282)
+		self.add_bus(181, self.bus_station_nodes, -742)
 		#Example how to add demand (use negatives to subtract)
-		self.add_demand(-885, 10)
 
 		rospy.Subscriber('update_demand_stats', 
 						BusStops, self.get_and_publish_demands)
+
+		rospy.spin()
 
 
 	def handle_get_map_location(self, req):
@@ -109,7 +104,6 @@ class BusNetworkModule(RoadModule):
 		return GetMapLocationResponse(self.base_path, self.map_location)
 
 	def get_and_publish_demands(self, unused):
-		rospy.logwarn('network received it too')
 		self.bus_stop_status.bus_stop_demands = self.demand_model.get_all_demands(self.bus_station_nodes)
 		self.pub_stops.publish(self.bus_stop_status)
 
@@ -178,8 +172,6 @@ class BusNetworkModule(RoadModule):
 		cur_node = min_first_move[0]
 		dist += min_first_move[1]
 		ret = self.calculate_best_cycle_exhaustively(responsible_nodes, cur_node)
-
-		rospy.logwarn('cycle created is ' + str(ret[1]))
 		return ret[1]
 
 		'''
@@ -225,21 +217,27 @@ class BusNetworkModule(RoadModule):
 			return (float('inf'), possible_paths)
 		return min(possible_paths, key = lambda t: t[0])
 
+	def close_bus_stop(self, req):
+		bus_stop = req.bus_stop_id
+		for bus_id, bus_nodes in self.responsible_nodes_by_bus.iteritems():
+			if bus_stop in bus_nodes:
+				bus_nodes.remove(bus_stop)
+				#TODO: At some point get actual start node from bus
+				self.bus_needs_rerouting(bus_id, bus_nodes[0])
 
-def bus_network(file_location):
+
+
+def bus_network():
 	rospy.init_node('bus_network')
-	bus_module = BusNetworkModule(file_location)
+	bus_module = BusNetworkModule()
 	rospy.Service('/start_bus_route', StartBusRoute,
 		bus_module.service_add_bus)
 	rospy.Subscriber('/bus_information', BusInformation,
 				bus_module.bus_information_update)
+	rospy.Service('/close_bus_stop', CloseBusStop,
+		bus_module.close_bus_stop)
 	rospy.spin()
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        file_location = sys.argv[1]
-    else:
-        msg = "Usage: rosrun sml_world bus_network.py <file_location>"
-        raise Exception(msg)
-    bus_network(file_location)
+    bus_network()
 
