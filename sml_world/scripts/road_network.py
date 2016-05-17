@@ -91,8 +91,8 @@ class RoadModuleExtend(RoadModule):
         if req.loop:
             print "get_closed_path_from_node_id"
             tx, ty = self.get_closed_path_from_node_id(req.start_id)
-        elif req.dest_id:
-            print "dest_id"
+        elif req.end_id:
+            print "end_id"
             tx, ty = 0
         else:
             print "get_path_between_node_ids"
@@ -130,7 +130,7 @@ class RoadModuleExtend(RoadModule):
         """
         # Find the connected node group that contains the destination node.
         for node_list in self.connected_nodes:
-            if req.dest_id in node_list.keys():
+            if req.end_id in node_list.keys():
                 break
         # Then find the node in that group that is closest to the vehicle.
         min_dist = float('inf')
