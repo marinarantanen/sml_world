@@ -33,11 +33,11 @@ def create_world_surface(road_module, image_width, image_height):
     WHITE = 255, 255, 255
 
     ''' Drawing forest background'''
-    # Drawing the background of the environment, 
+    # Drawing the background of the environment,
     # composed of a tree pattern
 
     # Load the image
-    forest_image = pygame.image.load(os.path.join(image_path,"forest.jpg"))
+    forest_image = pygame.image.load(os.path.join(image_path,"kistamockup.jpg"))
     original_width, original_height = forest_image.get_size()
 
     # The image might need resizing for the pattern to
@@ -82,7 +82,7 @@ def create_world_surface(road_module, image_width, image_height):
 
 def get_lanelet_mask(road_module, image_width, image_height, negative_color, positive_color):
     '''
-    Generates an image mask for the lanelets, where the background color 
+    Generates an image mask for the lanelets, where the background color
     is negative_color, and the interest region color is positive_color.
     This mask corresponds to an image with positive_color in the lanelets
     and negative_color everywhere else.
@@ -148,7 +148,7 @@ def repeat_pattern(destination_image, pattern_image, mask_image, brightness = 1.
         The pattern image to be applied.
         mask_image:
         The mask image to defining where the pattern will be applied.
-        The pattern is applied everywhere where the mask_image has a 
+        The pattern is applied everywhere where the mask_image has a
         color different than black (0, 0, 0)
         brightness: (Optional)
         Defines how bright/dark the way will be drawn.
@@ -196,8 +196,8 @@ def get_way_line_type_mask(road_module, image_width, image_height, line_type, ne
     '''
     NOT BEING USED IN THIS VERSION
 
-    Given a line_type, it will look for OSM Ways with this 
-    line_type and will return a mask image corresponding 
+    Given a line_type, it will look for OSM Ways with this
+    line_type and will return a mask image corresponding
     to the regions of these ways.
 
     Inputs:
@@ -217,7 +217,7 @@ def get_way_line_type_mask(road_module, image_width, image_height, line_type, ne
 
     Returns:
         mask_image:
-        The mask image, where the region of the ways with the given 
+        The mask image, where the region of the ways with the given
         line_type are colored positive_color and everywhere else is
         colored negative_color
 
@@ -233,7 +233,7 @@ def get_way_line_type_mask(road_module, image_width, image_height, line_type, ne
         if way.line_type != line_type:
 
             continue
-        
+
         node_tuple_list = []
 
         for node_id in way.node_ids:
@@ -250,7 +250,7 @@ def get_way_line_type_mask(road_module, image_width, image_height, line_type, ne
 
 def draw_all_ways(road_module, world_image, brightness = 1.0):
     '''
-    It will draw all of the ways in road_module into the 
+    It will draw all of the ways in road_module into the
     world image.
 
     Inputs:
@@ -309,7 +309,7 @@ def draw_way(osm_way, osm_node_dict, world_image, brightness = 1.0):
         line_thickness = 2
 
     elif osm_way.line_type == 'interior':
-        COLOR = (245, 243, 223) # Dirty white 
+        COLOR = (245, 243, 223) # Dirty white
         line_thickness = 2
 
     else:
@@ -347,7 +347,7 @@ def set_pixel_values_for_nodes(road_module, canvas_width, canvas_height, pixel_p
 
         origin_node_id = road_module.osm_node_tag_dict['origin'][0]
 
-        print "origin_node_id = " + str(origin_node_id) 
+        print "origin_node_id = " + str(origin_node_id)
 
         origin_x = road_module.osm_node_dict[origin_node_id].x
         origin_y = road_module.osm_node_dict[origin_node_id].y
@@ -386,7 +386,7 @@ def set_pixel_values_for_nodes(road_module, canvas_width, canvas_height, pixel_p
         origin_x = avg_x
         origin_y = avg_y
 
-    print "pixel_per_meter = " + str(pixel_per_meter) 
+    print "pixel_per_meter = " + str(pixel_per_meter)
 
     for way_id in road_module.osm_way_dict:
 
@@ -396,8 +396,8 @@ def set_pixel_values_for_nodes(road_module, canvas_width, canvas_height, pixel_p
 
             OSMNode = road_module.osm_node_dict[way.node_ids[idx]]
 
-            # print "avg_x = " + str(avg_x) 
-            # print "avg_y = " + str(avg_y) 
+            # print "avg_x = " + str(avg_x)
+            # print "avg_y = " + str(avg_y)
 
             # OSMNode.pixel_x = canvas_width/2. + (OSMNode.x - avg_x)*pixel_per_meter
             # OSMNode.pixel_y = canvas_height/2. - (OSMNode.y - avg_y)*pixel_per_meter
