@@ -104,6 +104,7 @@ def update_bus_stops(bus_status, bus_args):
     '''
     Takes tuple to 
     '''
+    rospy.logwarn('update')
     bus_stops = bus_args[0]
     bus_demands = bus_args[1]
     if len(bus_demands) != len(bus_stops):
@@ -113,8 +114,11 @@ def update_bus_stops(bus_status, bus_args):
     for demand in bus_status.bus_stop_demands:
         bus_demands.append(demand)
 
-def update_time(new_time, time):
-    time = new_time
+time = 0
+def update_time(new_time):
+    global time
+    time = new_time.time
+    rospy.logwarn(time)
 
 def sml_world_central():
     """Inizialize ROS-node 'sml_world' and start subs, pubs and srvs."""
@@ -123,7 +127,7 @@ def sml_world_central():
     td_dict = {}
     bus_stops = []
     bus_demands = []
-    time = 0
+    global time
     rospy.init_node('sml_world', log_level=rospy.WARN)
     rospy.Subscriber('current_vehicle_state', VehicleState,
                      update_vehicle_state, vs_dict)
@@ -131,8 +135,8 @@ def sml_world_central():
                      update_traffic_demand, td_dict)  
     rospy.Subscriber('current_bus_stops', BusStops,
                     update_bus_stops, (bus_stops, bus_demands))
-    rospy.Subscriber('current_time', GetTime,
-                    update_time, time)
+    rospy.Subscriber('get_time', GetTime,
+                    update_time)
 
     launcher = ROSLaunchExtended()
 
@@ -145,7 +149,7 @@ def sml_world_central():
         world_state.traffic_demand = td_dict.values()
         world_state.bus_stop_ids = bus_stops
         world_state.bus_stop_demands = bus_demands
-        world_state_time = time
+        world_state.time = time
             #launcher.spawn_vehicleAtoB()
         pub_ws.publish(world_state)
         if rate.remaining() < rospy.Duration(0):

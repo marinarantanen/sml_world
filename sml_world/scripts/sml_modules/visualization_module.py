@@ -39,7 +39,6 @@ class Visualization:
                  pixel_per_meter=-1, ground_projection=False):
         """
         Inizialize the class Visualization.
-
         @param base_path:
         @param file_path:
         """
@@ -79,6 +78,7 @@ class Visualization:
         self.load_blue_car_image()
         self.load_white_car_image()
         self.bus_stop_img = self.load_bus_stop_image()
+        self.bus_stop_img.convert()
 
         self.load_smart_car_image()
         self.load_truck_image()
@@ -372,14 +372,19 @@ class Visualization:
             self.window = pygame.display.set_mode(image_size, pygame.NOFRAME)
 
         else:
-
             self.window = pygame.display.set_mode(image_size)
 
         return
 
+    def restart_image(self):
+        rospy.logwarn('Underwhelming')
+        self.window.quit()
+        self.window.init()
+        self.areas_to_blit = [[0, 0, int(self.desired_window_width),
+                                   int(self.desired_window_height)]]
 
     def get_bar_images(self, demand):
-        BACKGROUND_BAR_WIDTH = 60
+        BACKGROUND_BAR_WIDTH = 30
         BAR_HEIGHT = 10
 
         background_image = pygame.image.load(self.base_path 
@@ -424,19 +429,18 @@ class Visualization:
             [pixel_x, pixel_y] = self.convert_position_to_image_pixel(bar_x, bar_y)
 
             pos = (int(round(pixel_x)), int(round(pixel_y)))
-            fg_demand_bar.convert()
-            bg_demand_bar.convert()
+            
 
             self.window.blit(fg_demand_bar, pos)
             self.window.blit(bg_demand_bar, pos)
 
             text_x = coords[0] + 2
-            text_y = coords[1] - 10
+            text_y = coords[1] - 9
             [pixel_x, pixel_y] = self.convert_position_to_image_pixel(text_x, text_y)
             pos = (int(round(pixel_x)), int(round(pixel_y)))
 
 
-            font = pygame.font.Font(None, 30)
+            font = pygame.font.Font(None, 24)
             text = font.render(str(-stop_id), 1, (255,255,255))
             self.window.blit(text, pos)
 
@@ -1099,7 +1103,6 @@ class Visualization:
         [pixel_x, pixel_y] = self.convert_position_to_image_pixel(stop_coords[0], stop_coords[1])
         pos = (int(round(pixel_x)), int(round(pixel_y)))
 
-        bus_stop_image.convert()
         self.window.blit(bus_stop_image, pos)
 
         return
@@ -1202,8 +1205,8 @@ class Visualization:
         return
 
     def draw_title(self):
-        title_pos = (500,0)
-        subtitle_pos = (610, 60)
+        title_pos = (200,0)
+        subtitle_pos = (310, 60)
 
         title_font = pygame.font.Font(None, 70)
         subtitle_font = pygame.font.Font(None, 30)
@@ -1217,8 +1220,11 @@ class Visualization:
 
         clock_font = pygame.font.Font(None, 40)
         #text = clock_font.render("%02d"%self.time/100 + ":" + "%02d"%self.time%100, 1, (255,255,255))
-        text = clock_font.render("%02d:%02d"% divmod(self.time, 100), 1, (255,255,255))
-        self.window.blit(text, clock_pos)
+        clock_text = clock_font.render("%02d:%02d"% divmod(self.time, 100), 1, (255,255,255))
+        self.window.fill((0,0,0), [0,0,100,40])
+        self.areas_to_blit.append([0, 0, 100, 40])
+        self.window.blit(clock_text, clock_pos)
+
 
 
 
@@ -1237,10 +1243,15 @@ class Visualization:
 
         # We are using sum as a key to see if we need to update demands
         #if sum(self.new_bus_stop_demands) != sum(self.bus_stop_demands) or self.bus_stop_reset == 0:
-        if self.bus_stop_reset == 30:
+        if self.bus_stop_reset % 30 == 0:
             self.load_bus_stops()
             self.draw_title()
-            self.bus_stop_reset = 0
+
+        if self.bus_stop_reset % 3000 == 0:
+            rospy.logwarn('Take it on')
+            self.window.fill((0,0,0))
+            self.areas_to_blit.append([0, 0, int(self.desired_window_width),
+                                   int(self.desired_window_height)])
 
         self.bus_stop_reset += 1
 

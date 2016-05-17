@@ -22,7 +22,7 @@ from sml_world.srv import GetMapLocation
 
 from sml_modules.visualization_module import Visualization
 
-INITIAL_TIME = 0
+INITIAL_TIME = 700
 
 def qualisys_info():
     """
@@ -111,7 +111,7 @@ if __name__ == '__main__':
         raise "Service call failed: %s" % e
     # Initialize the visualization module
     #vis_module = Visualization(base_path, map_location, 960, 720, 5, True)
-    vis_module = Visualization(base_path, map_location, 1600, 1200, 5, True)
+    vis_module = Visualization(base_path, map_location, 1024, 768, 5, True)
     print "vis_module_started."
     #First loop with empty values
     vis_module.loop_iteration({'vehicles' : {}, 'bus_stop_ids' : [], 'bus_stop_demands' : [], 'time': INITIAL_TIME})

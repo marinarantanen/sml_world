@@ -24,13 +24,6 @@ class DemandModel():
 		self.pub_state = rospy.Publisher('/update_demand_stats', BusStops, queue_size=5)
 		self.klockan = SMLClock(0)
 
-		
-
-	def min_tick(self):
-		time.sleep(1)
-		self.klockan.increment_min()
-		self.min_tick()
-
 	def register_bus_stop(self, bus_stop_id, initial_demand):
 		self.demand_dict[bus_stop_id] = initial_demand
 
@@ -78,15 +71,18 @@ class SMLClock():
 
 
 	def loop(self):
-		while True:
+		while not rospy.is_shutdown():
 			self.increment_min()
 			time.sleep(1)
 
 	def increment_min(self):
-		cur_min = self.cur_time
+		cur_hour = self.cur_time / 100
+		cur_min = (self.cur_time % 100) + 1
 		if cur_min == 60:
-			cur_hour = self.cur_time/100
+			cur_hour = cur_hour + 1
 			self.cur_time = ((cur_hour + 1) % 24) * 100
+		else:
+			self.cur_time = cur_hour * 100 + cur_min
 		self.publisher.publish(GetTime(self.cur_time))
 
 
