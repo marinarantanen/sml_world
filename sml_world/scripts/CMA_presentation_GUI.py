@@ -151,7 +151,7 @@ class CMAWindow(gtk.Window):
 
     def on_queue_clicked(self, button):
         print("\"Queue event\" button was clicked")
-        statsimagepath = self.base_path + '/resources/minimapQueue.png'
+        statsimagepath = self.base_path + '/resources/queue.jpg'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 1
         self.stat_graph(event_id)
@@ -161,7 +161,7 @@ class CMAWindow(gtk.Window):
     def on_road_clicked(self, button):
         print("\"Road event\" button was clicked")
 #        self.statsimage.set_from_file("jobstats.jpg")
-        statsimagepath = self.base_path + '/resources/minimapBlock.png'
+        statsimagepath = self.base_path + '/resources/stop.jpg'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 2
         self.stat_graph(event_id)
@@ -170,7 +170,7 @@ class CMAWindow(gtk.Window):
     def on_home_clicked(self, button):
         print("\"Hero event\" button was clicked")
 #        self.statsimage.set_from_file("homestats.jpg")
-        statsimagepath = self.base_path + '/resources/minimapNationalhero.png'
+        statsimagepath = self.base_path + '/resources/hero.jpg'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 3
         self.stat_graph(event_id)
@@ -179,7 +179,7 @@ class CMAWindow(gtk.Window):
     def on_concert_clicked(self, button):
         print("\"Subway event\" button was clicked")
 #        self.statsimage.set_from_file("concertstats.jpg")
-        statsimagepath = self.base_path + '/resources/minimapSub.png'
+        statsimagepath = self.base_path + '/resources/subway.jpg'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 4
         self.stat_graph(event_id)
