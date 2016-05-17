@@ -10,12 +10,9 @@ import pygtk
 pygtk.require('2.0')
 import pygtk_chart
 from pygtk_chart import bar_chart
-#import cairo
-#import pango
-#import pangocairo
-#import random
 
-from sml_world.msg import TrafficDemand
+from sml_world.srv import AddDemand, StartBusRoute
+import rospy
 
 import mocap
 
@@ -46,7 +43,7 @@ class CMAWindow(gtk.Window):
         self.head.set_from_file(self.headimagepath)
 
         self.statsimage = gtk.Image()
-        self.statsimagepath = self.base_path + '/resources/minimap.png'
+        self.statsimagepath = self.base_path + '/resources/start.jpg'
         self.statsimage.set_from_file(self.statsimagepath)
 
         self.hbox_graph = gtk.HBox(False, 0)
@@ -92,14 +89,14 @@ class CMAWindow(gtk.Window):
         heroevent.modify_bg(gtk.STATE_NORMAL, standardgray)
         blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         heroevent.set_size_request(110, 110)
-        heroevent.connect("clicked", self.on_home_clicked)
+        heroevent.connect("clicked", self.on_hero_clicked)
 
         subwayevent = gtk.Button("Subway\nmeltdown")
         blacklabel = subwayevent.get_children()[0]
         subwayevent.modify_bg(gtk.STATE_NORMAL, standardgray)
         blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         subwayevent.set_size_request(110, 110)
-        subwayevent.connect("clicked", self.on_concert_clicked)
+        subwayevent.connect("clicked", self.on_sub_clicked)
 
         closeButton = gtk.Button("_Close", use_underline=True)
         blacklabel = closeButton.get_children()[0]
@@ -156,7 +153,6 @@ class CMAWindow(gtk.Window):
         event_id = 1
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
-#        os.system("rosservice call spawn_vehicle"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -504, toggle_sim: true}"")
 
     def on_road_clicked(self, button):
         print("\"Road event\" button was clicked")
@@ -166,17 +162,27 @@ class CMAWindow(gtk.Window):
         event_id = 2
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
+        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -542, toggle_sim: true}\" ")
 
-    def on_home_clicked(self, button):
-        print("\"Hero event\" button was clicked")
-#        self.statsimage.set_from_file("homestats.jpg")
+    def on_hero_clicked(self, button):
         statsimagepath = self.base_path + '/resources/hero.jpg'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 3
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
+        self.add_demand_to_model(-326, 40)
+        self.add_demand_to_model(-386, 30)
+        self.add_demand_to_model(-468, 20)
+        rospy.wait_for_service('/start_bus_route')
+        start_bus = rospy.ServiceProxy('/start_bus_route', StartBusRoute)
+        start_bus([-326,-386,-468], 814, -468)
 
-    def on_concert_clicked(self, button):
+    def add_demand_to_model(self, bus_id, demand_added):
+        rospy.wait_for_service('/add_demand')
+        d_add = rospy.ServiceProxy('/add_demand', AddDemand)
+        d_add(bus_id, demand_added)
+
+    def on_sub_clicked(self, button):
         print("\"Subway event\" button was clicked")
 #        self.statsimage.set_from_file("concertstats.jpg")
         statsimagepath = self.base_path + '/resources/subway.jpg'
@@ -229,26 +235,6 @@ class CMAWindow(gtk.Window):
                 ('cost', 100, 'Cost'),
                ]
         return stats
-
-    def creator(self, fixed):
-        win.event = gtk.Label("Events ")
-        win.event.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
-
-        dynamic_stats = gtk.Label("Dynamic routing stats")
-        dynamic_stats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-
-        traffic_controls = gtk.Label("Traffic ")
-        traffic_controls.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-
-        passenger_stats = gtk.Label("Passenger stats ")
-        passenger_stats.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-
-        #win.add(Eventwindow)
-
-        fixed.add(win.event)
-        fixed.put(passenger_stats, 60, 365)
-        fixed.put(dynamic_stats, 450, 40)
-        fixed.put(traffic_controls, 450, 365)
 
     def stat_graph(self, event_id):
         data = self.stats(event_id)
