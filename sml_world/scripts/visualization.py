@@ -144,12 +144,7 @@ if __name__ == '__main__':
     except rospy.ServiceException, e:
         raise "Service call failed: %s" % e
     # Initialize the visualization module
-<<<<<<< HEAD
-    vis_module = Visualization(base_path, map_location, 800, 600, 5, True)
-#    vis_module = Visualization(base_path, map_location, 1820, 1380, 5, True)
-=======
     vis_module = Visualization(base_path, map_location, 1024, 768, 5, True)
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
     print "vis_module_started."
     #First loop with empty values
     vis_module.loop_iteration({'vehicles' : {}, 'bus_stop_ids' : [], 'bus_stop_demands' : [], 'time': INITIAL_TIME})

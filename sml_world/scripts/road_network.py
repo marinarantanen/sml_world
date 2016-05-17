@@ -18,11 +18,8 @@ import rospy
 from sml_world.msg import Pose2D
 from sml_world.srv import GetMapLocation, GetMapLocationResponse
 from sml_world.srv import GetTrajectory, GetTrajectoryResponse
-<<<<<<< HEAD
-=======
 from sml_world.srv import GetNearestNodeId, GetNearestNodeIdResponse
 from sml_world.srv import GetCoordinates, GetCoordinatesResponse
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 from sml_world.srv import SetDestination
 
 from sml_modules.road_module.RoadModule import RoadModule
@@ -102,7 +99,7 @@ class RoadModuleExtend(RoadModule):
             tx, ty = self.get_path_between_node_ids(req.start_id,
                                                     req.end_id)
         if np.sum(tx) == float('inf'):
-            raise NameError('Unable to find trajectory between ' + 
+            raise NameError('Unable to find trajectory between ' +
                                 str(req.start_id) + ' and ' + str(req.end_id))
         trajectory = []
         if tx:

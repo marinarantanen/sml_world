@@ -13,13 +13,9 @@ import math
 
 import rospy
 from sml_modules import bodyclasses
-<<<<<<< HEAD
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, Bus
-=======
-from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, WifiVehicle
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, WifiVehicle, Bus
 from sml_modules.bus_vehicle_model import BusVehicle
 from sml_world.srv import GetCoordinates
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
 from sml_world.srv import GetTrajectory
 import rospy
@@ -37,7 +33,7 @@ class Visualization:
     2) By an individual secondary script that is simply giving this class the
        main thread of processing.
     """
-    
+
 
     def __init__(self, base_path, file_path, window_width, window_height,
                  pixel_per_meter=-1, ground_projection=False):
@@ -95,12 +91,9 @@ class Visualization:
         self.load_goal_image()
         self.setup_id_font()
         self.load_block_image()
-<<<<<<< HEAD
-=======
         self.load_bus_image()
         self.load_block_image()
         self.load_big_red_x_image()
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
         self.show_ids = True
 
@@ -383,8 +376,6 @@ class Visualization:
 
         return
 
-<<<<<<< HEAD
-=======
     def restart_image(self):
         rospy.logwarn('Underwhelming')
         self.window.quit()
@@ -396,11 +387,11 @@ class Visualization:
         BACKGROUND_BAR_WIDTH = 30
         BAR_HEIGHT = 10
 
-        background_image = pygame.image.load(self.base_path 
+        background_image = pygame.image.load(self.base_path
                                             + '/resources/white_background.png')
         bg_new_size = (BACKGROUND_BAR_WIDTH, BAR_HEIGHT)
-        
-        foreground_image = pygame.image.load(self.base_path 
+
+        foreground_image = pygame.image.load(self.base_path
                                             + '/resources/red_demand_colour.png')
         fg_new_size = (int(BACKGROUND_BAR_WIDTH * demand / 100.), BAR_HEIGHT)
 
@@ -432,13 +423,13 @@ class Visualization:
             self.draw_bus_stop_image(coords, self.bus_stop_img)
 
 
-            fg_demand_bar, bg_demand_bar = self.get_bar_images(demand) 
+            fg_demand_bar, bg_demand_bar = self.get_bar_images(demand)
             bar_x = coords[0]
             bar_y = coords[1] + 5
             [pixel_x, pixel_y] = self.convert_position_to_image_pixel(bar_x, bar_y)
 
             pos = (int(round(pixel_x)), int(round(pixel_y)))
-            
+
 
             self.window.blit(fg_demand_bar, pos)
             self.window.blit(bg_demand_bar, pos)
@@ -483,8 +474,6 @@ class Visualization:
                         self.base_path + '/resources/busOffset.png',
                         bus_width_meters, bus_length_meters)
 
-
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
     def load_block_image(self):
         """Load the block image."""
         block_width_meters = 2.096
@@ -493,10 +482,6 @@ class Visualization:
         self.block_image = self.get_car_image(
                         self.base_path + '/resources/block.png',
                         block_width_meters, block_length_meters)
-<<<<<<< HEAD
-
-=======
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
         return
 
     def load_smart_car_image(self):
@@ -609,8 +594,6 @@ class Visualization:
 
         new_size = (int(round(scale_down_ratio * stop_image_width )),
                     int(round(scale_down_ratio * stop_image_height )))
-
-
         return pygame.transform.smoothscale(stop_image, new_size)
 
 
@@ -880,11 +863,7 @@ class Visualization:
             prevy = vehicle['y']
             [pix_prevx, pix_prevy] = self.convert_position_to_image_pixel(prevx-5, prevy-10)
             prev = [(pix_prevx, pix_prevy)]
-<<<<<<< HEAD
             poslist = self.trajectory(prev)
-=======
-            # poslist = self.trajectory(prev)
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
             if vehicle_class_name == bodyclasses.QualisysGoal.__name__:
                 self.draw_goal(vehicle['x'], vehicle['y'])
@@ -921,7 +900,6 @@ class Visualization:
                     elif color == 4:
                         self.draw_red_car(vehicle['x'], vehicle['y'],
                                           vehicle['yaw'])
-<<<<<<< HEAD
             elif (vehicle_class_name == Bus.__name__):
                 if vehicle_id > -100:
                     color = vehicle_id % 4
@@ -947,8 +925,6 @@ class Visualization:
 
             # self.draw_smart_car(vehicle['x'], vehicle['y'], vehicle['yaw'])
 
-=======
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
             else:
 
                 print "vehicle_class_name = " + str(vehicle_class_name)
@@ -1145,8 +1121,7 @@ class Visualization:
 
         return
 
-<<<<<<< HEAD
-=======
+
     def draw_bus_stop_image(self, stop_coords, bus_stop_image):
         [pixel_x, pixel_y] = self.convert_position_to_image_pixel(stop_coords[0], stop_coords[1])
         pos = (int(round(pixel_x)), int(round(pixel_y)))
@@ -1155,7 +1130,6 @@ class Visualization:
 
         return
 
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
     def draw_block(self, block_x, block_y):
         """
         Draw a road block, given its position, x, y.
@@ -1275,8 +1249,6 @@ class Visualization:
         self.window.blit(clock_text, clock_pos)
 
 
-
-
     def display_image(self):
         """Call the methods needed to refresh and display the current image."""
         # First, redraw the image to be the original
@@ -1288,9 +1260,8 @@ class Visualization:
         # Once the background is drawn,
         # draw the vehicles
         self.draw_vehicles()
-<<<<<<< HEAD
         self.draw_events()
-=======
+
         #self.draw_events()
 
         # We are using sum as a key to see if we need to update demands
@@ -1306,7 +1277,6 @@ class Visualization:
                                    int(self.desired_window_height)])
 
         self.bus_stop_reset += 1
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
         # Pygame functions to update the visualization
         # window
@@ -1314,7 +1284,7 @@ class Visualization:
         pygame.event.pump()
 
         self.draw_clock()
-        
+
         return
 
     def convert_position_to_image_pixel(self, x_pos, y_pos):

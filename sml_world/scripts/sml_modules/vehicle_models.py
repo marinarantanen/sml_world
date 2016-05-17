@@ -21,12 +21,8 @@ from sml_world.srv import SetSpeed, SetSpeedResponse
 from sml_world.srv import SetLoop, SetLoopResponse
 from sml_world.srv import SetDestination, SetDestinationResponse
 from sml_world.srv import SetDemand, SetDemandResponse
-<<<<<<< HEAD
-from sml_world.srv import GetTrajectory
-=======
 from sml_world.srv import GetTrajectory, GetNearestNodeId
 from sml_world.srv import SendWifiCom
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 # from sml_world.srv import PublishCom
 
 from sml_modules.bodyclasses import WheeledVehicle
@@ -437,7 +433,6 @@ class DummyVehicle(BaseVehicle):
                                     (self.radar_readings,
                                      [[r.rho], [r.theta], [r.yaw]]),
                                     axis=1)
-<<<<<<< HEAD
 
 
 class Bus(BaseVehicle):
@@ -489,7 +484,8 @@ class Bus(BaseVehicle):
                                     (self.radar_readings,
                                      [[r.rho], [r.theta], [r.yaw]]),
                                     axis=1)
-=======
+
+
 class WifiVehicle(DummyVehicle):
     """
     Class for the wifi vehicle.
@@ -519,4 +515,4 @@ class WifiVehicle(DummyVehicle):
     def process_wifi_com(self, wm):
         """Process messages received over wifi."""
         print wm.message
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
+

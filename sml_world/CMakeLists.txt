@@ -67,10 +67,7 @@ add_service_files(
   GetMapLocation.srv
   GetTrajectory.srv
   SetDemand.srv
-<<<<<<< HEAD
-=======
   GetNearestNodeId.srv
->>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
   SetVehicleState.srv
   SetSpeed.srv
   SetLoop.srv
@@ -83,7 +80,7 @@ add_service_files(
   AddDemand.srv
   BusRouting.srv
   CloseBusStop.srv
-  
+
   )
 
 ## Generate actions in the 'action' folder

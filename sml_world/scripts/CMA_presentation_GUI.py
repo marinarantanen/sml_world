@@ -165,7 +165,6 @@ class CMAWindow(gtk.Window):
         self.passenger_graph(event_id)
 #        os.system("rosservice call spawn_vehicle"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -504, toggle_sim: true}"")
 
-
     def on_road_clicked(self, button):
         print("\"Road event\" button was clicked")
         statsimagepath = self.base_path + '/resources/stop.jpg'
@@ -173,7 +172,6 @@ class CMAWindow(gtk.Window):
         event_id = 2
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
-        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -542, toggle_sim: true}\" ")
 
     def on_hero_clicked(self, button):
         statsimagepath = self.base_path + '/resources/hero.jpg'
@@ -181,12 +179,12 @@ class CMAWindow(gtk.Window):
         event_id = 3
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
-        self.add_demand_to_model(-326, 40)
-        self.add_demand_to_model(-386, 30)
-        self.add_demand_to_model(-468, 20)
+        self.add_demand_to_model(-274, 40)
+        self.add_demand_to_model(-302, 30)
+        self.add_demand_to_model(-444, 20)
         rospy.wait_for_service('/start_bus_route')
         start_bus = rospy.ServiceProxy('/start_bus_route', StartBusRoute)
-        start_bus([-326,-386,-468], 814, -468)
+        start_bus([-274,-302,-444], 814, -444)
 
     def add_demand_to_model(self, bus_id, demand_added):
         rospy.wait_for_service('/add_demand')

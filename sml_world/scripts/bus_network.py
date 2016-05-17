@@ -85,7 +85,7 @@ class BusNetworkModule(RoadModule):
 
 		rospy.logwarn(self.bus_station_nodes)
 		#Example how to add bus:
-		self.add_bus(181, self.bus_station_nodes, -742)
+		self.add_bus(302, self.bus_station_nodes, -672)
 		#Example how to add demand (use negatives to subtract)
 
 		rospy.Subscriber('update_demand_stats',
