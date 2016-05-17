@@ -381,7 +381,6 @@ def qualisys_info():
 
 win = CMAWindow()
 win.connect("delete-event", gtk.main_quit)
-#win.resize(1200, 680)
 win.show_all()
 gtk.main()
 
