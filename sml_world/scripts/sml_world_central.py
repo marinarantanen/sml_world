@@ -14,10 +14,15 @@ import rospy
 from roslaunch.scriptapi import ROSLaunch
 from roslaunch.core import Node
 from sml_world.msg import TrafficDemand, VehicleState, WorldState
+<<<<<<< HEAD
+=======
+from sml_world.msg import BusStops, GetTime
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 from sml_world.srv import SpawnVehicle, SpawnVehicleResponse
 from sml_world.srv import SetLoop
 #from sml_world.srv import SetDestination
 from sml_world.srv import SetBool
+from sml_modules.bus_vehicle_model import BusVehicle
 
 
 class ROSLaunchExtended(ROSLaunch):
@@ -51,22 +56,28 @@ class ROSLaunchExtended(ROSLaunch):
                     namespace=namespace, args=args,
                     name=req.class_name.lower())
         self.launch_queue.put(node)
+
+        #if the vehicle is a bus, bus central will set the loop
         loop_service = '/' + namespace + '/set_loop'
         rospy.wait_for_service(loop_service)
+<<<<<<< HEAD
 
         if bool(req.node_id):
+=======
+        if req.node_id != 0:
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
             try:
                 set_loop = rospy.ServiceProxy(loop_service, SetLoop)
                 set_loop(req.node_id)
             except rospy.ServiceException, e:
-                raise "Service call failed: %s" % e
+                raise NameError("Service call failed: %s" % e)
         toggle_sim_serv = '/' + namespace + '/toggle_simulation'
         rospy.wait_for_service(toggle_sim_serv)
         try:
             toggle_sim = rospy.ServiceProxy(toggle_sim_serv, SetBool)
             toggle_sim(req.toggle_sim)
         except rospy.ServiceException, e:
-            raise "Service call failed: %s" % e
+            raise NameError("Service call failed: %s" % e)
         msg = ("Vehicle #%i was successfully spawned." % req.vehicle_id)
         return SpawnVehicleResponse(True, msg)
 
@@ -95,17 +106,55 @@ def update_traffic_demand(td, td_dict):
     @param td_dict: I{(dict)} Dict of demand of various transports.
     """
     td_dict[td.bus_demand] = td
+<<<<<<< HEAD
+=======
+
+def update_bus_stops(bus_status, bus_args):
+    #Todo; Make this less terrifyingly disgusting
+    '''
+    Takes tuple to 
+    '''
+    rospy.logwarn('update')
+    bus_stops = bus_args[0]
+    bus_demands = bus_args[1]
+    if len(bus_demands) != len(bus_stops):
+        raise NameError('Something may have gone wrong')
+    for stop in bus_status.bus_stops:
+        bus_stops.append(stop)
+    for demand in bus_status.bus_stop_demands:
+        bus_demands.append(demand)
+
+time = 0
+def update_time(new_time):
+    global time
+    time = new_time.time
+    rospy.logwarn(time)
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
 def sml_world_central():
     """Inizialize ROS-node 'sml_world' and start subs, pubs and srvs."""
     world_state = WorldState()
     vs_dict = {}  # Saves all vehicle states in a dict with vehicle_id as key
     td_dict = {}
+<<<<<<< HEAD
+=======
+    bus_stops = []
+    bus_demands = []
+    global time
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
     rospy.init_node('sml_world', log_level=rospy.WARN)
     rospy.Subscriber('current_vehicle_state', VehicleState,
                      update_vehicle_state, vs_dict)
     rospy.Subscriber('current_demand', TrafficDemand,
+<<<<<<< HEAD
                      update_traffic_demand, td_dict)
+=======
+                     update_traffic_demand, td_dict)  
+    rospy.Subscriber('current_bus_stops', BusStops,
+                    update_bus_stops, (bus_stops, bus_demands))
+    rospy.Subscriber('get_time', GetTime,
+                    update_time)
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
     launcher = ROSLaunchExtended()
 
@@ -116,6 +165,13 @@ def sml_world_central():
             launcher.spawn_vehicle()
         world_state.vehicle_states = vs_dict.values()
         world_state.traffic_demand = td_dict.values()
+<<<<<<< HEAD
+=======
+        world_state.bus_stop_ids = bus_stops
+        world_state.bus_stop_demands = bus_demands
+        world_state.time = time
+            #launcher.spawn_vehicleAtoB()
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
         pub_ws.publish(world_state)
         if rate.remaining() < rospy.Duration(0):
             rospy.logwarn("SML-World central could not keep up with the " +

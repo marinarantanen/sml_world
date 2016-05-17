@@ -31,7 +31,6 @@ def create_osm_node_dict(xml_file_location):
         an OMSNode corresponding to the origin node
         If the OSM Map does not define an origin node, it will return None
     '''
-
     XML_file = xml_file_location
 
     tree = ET.parse(XML_file)
@@ -39,6 +38,7 @@ def create_osm_node_dict(xml_file_location):
 
     osm_node_dict = dict()
     osm_tag_dict = dict()
+    osm_bus_stop_array = []
     origin_node = None
 
     for node in xml_root.findall('node'):
@@ -50,7 +50,6 @@ def create_osm_node_dict(xml_file_location):
             node_id = int( node.get('id') )
             origin_lat = float( node.get('lat') )
             origin_lon = float( node.get('lon') )
-
             if tag.get('k') == "origin":
 
                 if tag.get('v') == "true":
@@ -71,14 +70,13 @@ def create_osm_node_dict(xml_file_location):
                 osm_node_dict[node_id] = special_node
 
                 if osm_tag_dict.has_key(tag_string):
-
                     osm_tag_dict[tag_string].append(node_id)
 
                 else:
 
                     osm_tag_dict[tag_string] = [node_id]
                 
-                continue    
+                continue   
 
         node_id = int( node.get('id') )
 

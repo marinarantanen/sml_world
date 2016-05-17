@@ -53,6 +53,11 @@ add_message_files(
   Pose2D.msg
   Pose2DPolar.msg
   RadarReadings.msg
+  WifiCom.msg
+  BusStops.msg
+  BusInformation.msg
+  BusCommands.msg
+  GetTime.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -62,13 +67,24 @@ add_service_files(
   GetMapLocation.srv
   GetTrajectory.srv
   SetDemand.srv
+<<<<<<< HEAD
+=======
+  GetNearestNodeId.srv
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
   SetVehicleState.srv
   SetSpeed.srv
   SetLoop.srv
   SetDestination.srv
   SetBool.srv
   SpawnVehicle.srv
-)
+  SendWifiCom.srv
+  StartBusRoute.srv
+  GetCoordinates.srv
+  AddDemand.srv
+  BusRouting.srv
+  CloseBusStop.srv
+  
+  )
 
 ## Generate actions in the 'action' folder
 # add_action_files(

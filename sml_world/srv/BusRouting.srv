@@ -1,0 +1,4 @@
+int32 current_node_id
+int32 busid
+---
+int32[] ordered_stops

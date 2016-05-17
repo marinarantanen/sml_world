@@ -12,7 +12,12 @@ import sys
 
 import rospy
 
+<<<<<<< HEAD
 from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, Bus
+=======
+from sml_modules.vehicle_models import BaseVehicle, DummyVehicle, WifiVehicle
+from sml_modules.bus_vehicle_model import BusVehicle
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
 
 def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
@@ -36,8 +41,17 @@ def vehicle(vehicle_id, vehicle_class, x=0., y=0., yaw=0., speed_in_ms=0.):
     elif vehicle_class == DummyVehicle.__name__:
         DummyVehicle(rospy.get_namespace(), vehicle_id, 20,
                      x, y, yaw, speed_in_ms)
+<<<<<<< HEAD
     elif vehicle_class == Bus.__name__:
         Bus(rospy.get_namespace(), vehicle_id, 20, x, y, yaw, speed_in_ms)
+=======
+    elif vehicle_class == WifiVehicle.__name__:
+        WifiVehicle(rospy.get_namespace(), vehicle_id, 20,
+                    x, y, yaw, speed_in_ms)
+    elif vehicle_class == BusVehicle.__name__:
+        BusVehicle(rospy.get_namespace(), vehicle_id, 20,
+                    x, y, yaw, speed_in_ms)
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
     else:
         raise Exception("ERROR: Unknown vehicle class '%s'." % vehicle_class)
     rospy.spin()

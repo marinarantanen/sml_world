@@ -3,7 +3,7 @@ import RoadDrawer # Defines auxiliary functions related to image generation of t
 
 import RoadLibrary # Defines several functions needed for lanelets
 import RoadDijkstra # Defines some Dijkstra functions for lanelets
-
+import rospy
 import os, pygame
 
 class RoadModule(object):
@@ -148,14 +148,20 @@ class RoadModule(object):
 
         return
 
-    def get_lanelets_containing_node_id(self, osm_node_id, right_way_only = True):
+    def get_lanelets_containing_node_id(self, osm_node_id, right_way_only = False):
         '''
         Interface for RoadLibrary.get_lanelets_containing_node_id
         '''
 
-        return RoadLibrary.get_lanelets_containing_node_id(self.osm_lanelet_dict, osm_node_id, right_way_only)
+        lanelets = RoadLibrary.get_lanelets_containing_node_id(self.osm_lanelet_dict, osm_node_id, right_way_only)
 
+<<<<<<< HEAD
 
+=======
+        if not lanelets:
+            raise NameError('Unable to find lanelets containing ' + str(osm_node_id))
+        return lanelets
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
     def get_closed_path_from_node_tag(self, osm_node_tag, points_per_meter = 5):
         '''
@@ -193,9 +199,16 @@ class RoadModule(object):
         '''
         Computes the trajectory from one node to another
         '''
+<<<<<<< HEAD
         start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, True)
         end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, True)
         containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, True)
+=======
+        #TODO: Should these be true or false
+        start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, False)
+        end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, False)
+        containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, False)
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
         best_distance = 10e10
         best_lanelets_path = []
@@ -255,7 +268,7 @@ class RoadModule(object):
 
         '''
 
-        containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, True)
+        containing_lanelet_ids = self.get_lanelets_containing_node_id(osm_node_id, False)
 
         best_distance = 10e10
         best_lanelets_path = []
@@ -293,6 +306,17 @@ class RoadModule(object):
 
         return traj_x, traj_y
 
+    def get_path_distance_between_node_ids(self, start_osm_node_id, end_osm_node_id, points_per_meter=5):
+        '''
+        Computes the distance of the shortest path distance between two node id'start_osm_node_id
+        '''
+        x_traj, y_traj = self.get_path_between_node_ids(start_osm_node_id, end_osm_node_id, points_per_meter)
+        count = 0 
+        for i in range(1, len(x_traj)):
+            # Pythagorian distance
+            count += ((x_traj[i] - x_traj[i - 1]) ** 2 + (y_traj[i] - y_traj[i - 1]) ** 2) ** .5
+
+        return count 
 
     def get_path_between_node_ids(self, start_osm_node_id, end_osm_node_id, points_per_meter = 5):
         '''
@@ -317,9 +341,13 @@ class RoadModule(object):
             A list with the y coordinates of the trajectory
 
         '''
-
-        start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, True)
-        end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, True)
+        start_lanelet_ids = self.get_lanelets_containing_node_id(start_osm_node_id, False)
+        end_lanelet_ids = self.get_lanelets_containing_node_id(end_osm_node_id, False)
+        circle = False
+        if start_lanelet_ids == end_lanelet_ids:
+            way_ids = self.osm_lanelet_dict[start_lanelet_ids[0]].right_osm_way.node_ids
+            if way_ids.index(start_osm_node_id) > way_ids.index(end_osm_node_id):
+                circle = True
 
         best_distance = 10e10
         best_lanelets_path = []
@@ -328,12 +356,10 @@ class RoadModule(object):
 
             for end_lanelet_id in end_lanelet_ids:
 
-                lanelet_ids_path = RoadDijkstra.lanelet_dijkstra_algorithm(self, start_lanelet_id, end_lanelet_id)
-
-                if not lanelet_ids_path:
-
-                    # lanelet_ids_path is empty, ignore
-                    continue
+                if not circle:
+                    lanelet_ids_path = RoadDijkstra.lanelet_dijkstra_algorithm(self, start_lanelet_id, end_lanelet_id)
+                else:
+                    lanelet_ids_path = RoadDijkstra.lanelet_circular_dijkstra_algorithm(self, start_lanelet_id)
 
                 current_distance = 0
 
@@ -347,17 +373,21 @@ class RoadModule(object):
                     # shortest path, since the shortest path does not include it
                     best_lanelets_path = [start_lanelet_id]
                     best_lanelets_path.extend(lanelet_ids_path)
-                    best_lanelets_path.append(end_lanelet_id)
-
+                    if circle:
+                        best_lanelets_path.append(end_lanelet_id)
+                    else:
+                        if start_lanelet_id != end_lanelet_id:
+                            best_lanelets_path.append(end_lanelet_id)
                     best_distance = current_distance
 
         total_x = []
         total_y = []
 
         if not best_lanelets_path:
-
+            # Todo: Fix returning infinity, because it's strictly not true
+            return [0., float('inf')], [0., float('inf')] 
             raise NameError("In RoadModule.py get_path_between_node_ids(): Could not find a trajectory"
-                " between the given nodes.")
+                " between the given nodes " + str(start_osm_node_id) + ' and ' + str(end_osm_node_id))
 
         for lanetet_id in best_lanelets_path:
 
@@ -367,7 +397,6 @@ class RoadModule(object):
             total_y.extend(y)
 
         [traj_x, traj_y] = RoadLibrary.crop_path_to_node_ids(total_x, total_y, self.osm_node_dict, start_osm_node_id, end_osm_node_id)
-
         return traj_x, traj_y
 
 
@@ -389,8 +418,11 @@ class RoadModule(object):
 
         return self.get_path_between_node_ids(start_osm_node_id, end_osm_node_id, points_per_meter)
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> eeae3cb5dc6d5f0c77dec60e8b06225f1d25d921
 
     def get_shortest_path_distance(self, adjacency_matrix, previous_node, destination_id):
         "Simply receives Dijkstra outputs and sums the distances composing the shortest path"

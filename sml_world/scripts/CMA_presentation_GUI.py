@@ -33,6 +33,7 @@ class CMAWindow(gtk.Window):
         self.set_position(gtk.WIN_POS_CENTER)
 
         self.base_path = '/home/mma/catkin_ws/src/sml_world/scripts'
+        #self.base_path = '/home/dcarballal/catkin/src/sml_world/scripts'
 
         self.bkg = gtk.Image()
         self.bkgimagepath = self.base_path + '/resources/bkg_light.png'
@@ -44,6 +45,11 @@ class CMAWindow(gtk.Window):
 
         self.statsimage = gtk.Image()
         self.statsimagepath = self.base_path + '/resources/start.jpg'
+
+        self.closebtn = gtk.Image()
+        self.closebtnimagepath = self.base_path + '/resources/closebtn.jpg'
+        self.closebtn.set_from_file(self.closebtnimagepath)
+
         self.statsimage.set_from_file(self.statsimagepath)
 
         self.hbox_graph = gtk.HBox(False, 0)
@@ -98,11 +104,13 @@ class CMAWindow(gtk.Window):
         subwayevent.set_size_request(110, 110)
         subwayevent.connect("clicked", self.on_sub_clicked)
 
-        closeButton = gtk.Button("_Close", use_underline=True)
-        blacklabel = closeButton.get_children()[0]
-        closeButton.modify_bg(gtk.STATE_NORMAL, standardgray)
-        blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-        closeButton.set_size_request(187, 44)
+        closeButton = gtk.Button()
+        #closeButton = gtk.Button("_Close", use_underline=True)
+        #blacklabel = closeButton.get_children()[0]
+        #closeButton.modify_bg(gtk.STATE_NORMAL, standardgray)
+        #blacklabel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        #closeButton.set_size_request(187, 44)
+        closeButton.set_image(self.closebtn)
         closeButton.connect("clicked", self.on_close_clicked)
 
         Dynstats = gtk.ScrolledWindow()
@@ -137,6 +145,7 @@ class CMAWindow(gtk.Window):
 
         fixed.put(closeButton, 1360, 135)
 
+
         #fixed.put(Eventwindow, 60, 40)
         #fixed.put(PassengerStats, 60, 365)
         #fixed.put(DynamicStats, 450, 40)
@@ -148,15 +157,17 @@ class CMAWindow(gtk.Window):
 
     def on_queue_clicked(self, button):
         print("\"Queue event\" button was clicked")
+
         statsimagepath = self.base_path + '/resources/queue.jpg'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 1
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
+#        os.system("rosservice call spawn_vehicle"{vehicle_id: 2, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -504, toggle_sim: true}"")
+
 
     def on_road_clicked(self, button):
         print("\"Road event\" button was clicked")
-#        self.statsimage.set_from_file("jobstats.jpg")
         statsimagepath = self.base_path + '/resources/stop.jpg'
         self.statsimage.set_from_file(statsimagepath)
         event_id = 2
@@ -194,11 +205,11 @@ class CMAWindow(gtk.Window):
     def demand(self, event_id):
         #demand = TrafficDemand
         #Projected demand
-        demand = [('now', 200, 'Now'),
+        demand = [('now', 100, 'Now'),
             ('plusone', 52, '+1h'),
-            ('plustwo', 652, '+2h'),
+            ('plustwo', 20, '+2h'),
             ('plusthree', 65, '+3h'),
-            ('plusfour', 120, '+4h'),
+            ('plusfour', 78, '+4h'),
            ]
         return demand
 
@@ -294,8 +305,6 @@ class CMAWindow(gtk.Window):
         barchart.show()
 
 
-
-
 #    def on_redbus_clicked(self, button):
 #        print("\"Red bus\" button was clicked")
 #    #        os.system("rosservice call spawn_vehicle \"{vehicle_id: 1, class_name: 'Bus', x: 0.0, y: 0.0, yaw: 0.0, v: 10.0, node_id: -384, toggle_sim: true}\" ")
@@ -376,5 +385,5 @@ win = CMAWindow()
 win.connect("delete-event", gtk.main_quit)
 #win.resize(1200, 680)
 win.show_all()
-
 gtk.main()
+

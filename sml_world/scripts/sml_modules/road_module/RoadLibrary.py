@@ -1,5 +1,4 @@
 import math
-
 def create_lanelet_adjacency_matrix(osm_lanelet_dict, osm_node_dict):
     '''
     Creates a lanelet adjacency matrix, which contains information about
@@ -10,7 +9,7 @@ def create_lanelet_adjacency_matrix(osm_lanelet_dict, osm_node_dict):
     average length of the first lanelet.
 
     NOTE: The definition of "adjacent" in this context is not the usual.
-    Two lanelets, lanelet_start and lanelet_end, are adjacent if 
+    Two lanelets, lanelet_start and lanelet_end, are adjacent if
     it is possible to go from lanelet_start to lanelet_end.
     Being possible to go from lanelet_start to lanelet_end does not imply
     that is is possible to go from lanelet_end to lanelet_start (imagine
@@ -27,7 +26,7 @@ def create_lanelet_adjacency_matrix(osm_lanelet_dict, osm_node_dict):
     Returns:
 
     adjacency_matrix:
-        A square matrix (list of lists) with the n*n entries, where n is the 
+        A square matrix (list of lists) with the n*n entries, where n is the
         number of lanelets in osm_lanelet_dict.
         Each entry n,m of the matrix, indicates if lanelet_n is adjacent to lanelet_m,
         that is, if it is possible to go from lanelet_n to lanelet_m.
@@ -38,7 +37,7 @@ def create_lanelet_adjacency_matrix(osm_lanelet_dict, osm_node_dict):
         the matrix by doing: lanelet_index = osm_lanelet_dict.keys().index(lanelet_id)
     '''
 
-    adjacency_matrix = [[10e10 for x in range( len(osm_lanelet_dict) )] for x in range ( len(osm_lanelet_dict) )]
+    adjacency_matrix = [[float('inf') for x in range( len(osm_lanelet_dict) )] for x in range ( len(osm_lanelet_dict) )]
 
     for lanelet_id_a in osm_lanelet_dict:
 
@@ -61,14 +60,13 @@ def create_lanelet_adjacency_matrix(osm_lanelet_dict, osm_node_dict):
                 lanelet_index_b = osm_lanelet_dict.keys().index(lanelet_id_b)
 
                 adjacency_matrix[lanelet_index_a][lanelet_index_b] = lanelet_length
-
     return adjacency_matrix
 
 
 def check_lanelet_adjacency(lanelet_start, lanelet_end):
     '''
-    Checks if two given lanelets are adjacent. Two lanelets are adjacent if 
-    it is possible to go from lanelet_start to lanelet_b. 
+    Checks if two given lanelets are adjacent. Two lanelets are adjacent if
+    it is possible to go from lanelet_start to lanelet_end.
     This function is not commutative:
     check_lanelet_adjacency(A, B) != check_lanelet_adjacency(B, A)
 
@@ -85,7 +83,7 @@ def check_lanelet_adjacency(lanelet_start, lanelet_end):
     if ( lanelet_start.left_osm_way.node_ids[-1] == lanelet_end.left_osm_way.node_ids[0] ) and ( lanelet_start.right_osm_way.node_ids[-1] == lanelet_end.right_osm_way.node_ids[0] ) :
 
         return True
-            
+
     return False
 
 def get_lanelet_length(osm_lanelet, osm_node_dict):
@@ -133,7 +131,7 @@ def get_lanelet_length(osm_lanelet, osm_node_dict):
 
     return average_length
 
-def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_only = True):
+def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_only = False):
     '''
     Given an OSMNode id, will return the ids of the lanelets that contain this node in it's
     right and/or left way.
@@ -154,13 +152,12 @@ def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_onl
         A list with the ids of the lanelets that contain the given OSMNode id. Empty list
         if no lanelets were found.
     '''
+    #TODO: Changed so that searches both ways
 
     containing_lanelet_ids = []
+    for lanelet_id in sorted(osm_lanelet_dict):
 
-    for lanelet_id in osm_lanelet_dict:
-
-        current_lanelet = osm_lanelet_dict[lanelet_id]
-
+        current_lanelet = osm_lanelet_dict[lanelet_id]    
         if osm_node_id in current_lanelet.right_osm_way.node_ids:
 
             containing_lanelet_ids.append(lanelet_id)
@@ -168,9 +165,7 @@ def get_lanelets_containing_node_id(osm_lanelet_dict, osm_node_id, right_way_onl
             continue
 
         if not right_way_only:
-
             if osm_node_id in current_lanelet.left_osm_way.node_ids:
-
                 containing_lanelet_ids.append(lanelet_id)
 
                 continue
@@ -203,20 +198,20 @@ def convert_lanelet_to_path(osm_lanelet, osm_node_dict, points_per_meter):
 
     '''
 
-    left_osm_way = osm_lanelet.left_osm_way 
+    left_osm_way = osm_lanelet.left_osm_way
     right_osm_way = osm_lanelet.right_osm_way
 
     center_points_x = []
     center_points_y = []
 
     left_nodes = []
-    
+
     for left_id in left_osm_way.node_ids:
 
         left_nodes.append( osm_node_dict[left_id] )
 
     right_nodes = []
-    
+
     for right_id in right_osm_way.node_ids:
 
         right_nodes.append( osm_node_dict[right_id] )
@@ -226,7 +221,7 @@ def convert_lanelet_to_path(osm_lanelet, osm_node_dict, points_per_meter):
         [x, y] = get_center_between_nodes(left_nodes[idx], right_nodes[idx])
         center_points_x.append(x)
         center_points_y.append(y)
-    
+
     cumulative_length_center = [0]
     current_cumulative_length_center = 0
 
@@ -334,15 +329,15 @@ def crop_path_to_node_ids(traj_x, traj_y, osm_node_dict, start_id, end_id):
 
     Returns:
         traj_x:
-        A list with the x coordinates of the trajectory after being cropped to 
+        A list with the x coordinates of the trajectory after being cropped to
         start and end at the given nodes
         traj_y:
-        A list with the y coordinates of the trajectory after being cropped to 
+        A list with the y coordinates of the trajectory after being cropped to
         start and end at the given nodes
 
     '''
-    
-    start_node = osm_node_dict[start_id] 
+
+    start_node = osm_node_dict[start_id]
     end_node = osm_node_dict[end_id]
 
     best_start_distance = 10e10
@@ -362,7 +357,7 @@ def crop_path_to_node_ids(traj_x, traj_y, osm_node_dict, start_id, end_id):
 
         current_distance = ( ( end_node.x - traj_x[idx] )**2. + ( end_node.y - traj_y[idx] )**2 )**0.5
 
-        if current_distance < best_end_distance:
+        if current_distance <= best_end_distance:
 
             best_end_distance = current_distance
             best_end_id = idx
