@@ -111,7 +111,7 @@ if __name__ == '__main__':
         raise "Service call failed: %s" % e
     # Initialize the visualization module
     vis_module = Visualization(base_path, map_location, 1024, 768, 5, True)
-    print "vis_module_started."
+    
     #First loop with empty values
     vis_module.loop_iteration({'vehicles' : {}, 'bus_stop_ids' : [], 'bus_stop_demands' : [], 'time': INITIAL_TIME})
     visualizer(vis_module)

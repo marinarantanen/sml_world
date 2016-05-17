@@ -377,14 +377,13 @@ class Visualization:
         return
 
     def restart_image(self):
-        rospy.logwarn('Underwhelming')
         self.window.quit()
         self.window.init()
         self.areas_to_blit = [[0, 0, int(self.desired_window_width),
                                    int(self.desired_window_height)]]
 
     def get_bar_images(self, demand):
-        BACKGROUND_BAR_WIDTH = 30
+        BACKGROUND_BAR_WIDTH = 40
         BAR_HEIGHT = 10
 
         background_image = pygame.image.load(self.base_path 
@@ -400,21 +399,18 @@ class Visualization:
     def kista_move_bus_stops_off_road(self, bus_id, tup):
         x,y = tup
         return {
-            -450: (x - 13, y - 5),
-            -386: (x, y - 8),
-            -326: (x - 7, y - 11),
-            -468: (x + 7, y - 3),
-            -742: (x, y - 7),
-            -298: (x + 3, y - 5)
+            -426: (x - 13, y - 5),
+            -362: (x, y - 8),
+            -302: (x - 7, y - 11),
+            -444: (x + 7, y - 3),
+            -274: (x, y - 7),
+            -672: (x + 3, y - 5)
         }.get(bus_id, (x,y))
 
     def load_bus_stops(self):
         """
         Loads bus stops onto the current map
         """
-
-        BACKGROUND_BAR_WIDTH = 30
-        BAR_HEIGHT = 10
         for i in range(len(self.bus_stop_demands)):
             stop_id = self.bus_stops[i]
             demand = self.bus_stop_demands[i]
@@ -915,16 +911,6 @@ class Visualization:
         for vehicle_id in self.vehicles_dict:
 
             vehicle = self.vehicles_dict[vehicle_id]
-
-            # Debug purposes
-            # circle_radius = int(round(0.5*self.image_pixel_per_meter))
-            # pygame.draw.circle(self.window, (0,255,0), (pixel_x,pixel_y),
-            #                    circle_radius, 0)
-            # self.areas_to_blit.append([pixel_x - circle_radius * 10,
-            #                            pixel_y - circle_radius * 2,
-            #                            pixel_x + circle_radius * 10,
-            #                            pixel_y + circle_radius * 10])
-
         return
 
     def draw_car(self, car_x, car_y, car_yaw):
@@ -1216,13 +1202,14 @@ class Visualization:
         self.window.blit(subtitle, subtitle_pos)
 
     def draw_clock(self):
-        clock_pos = (0,0)
+        clock_pos_x = 954
+        clock_pos_y = 0
+        clock_pos = (clock_pos_x,clock_pos_y)
 
         clock_font = pygame.font.Font(None, 40)
         #text = clock_font.render("%02d"%self.time/100 + ":" + "%02d"%self.time%100, 1, (255,255,255))
-        clock_text = clock_font.render("%02d:%02d"% divmod(self.time, 100), 1, (255,255,255))
-        self.window.fill((0,0,0), [0,0,100,40])
-        self.areas_to_blit.append([0, 0, 100, 40])
+        clock_text = clock_font.render("%02d.%02d"% divmod(self.time, 100), 1, (0,0,0))
+        self.window.fill((255,255,255), [clock_pos_x, clock_pos_y, clock_pos_x + 70, clock_pos_y  + 30])
         self.window.blit(clock_text, clock_pos)
 
 
@@ -1235,6 +1222,8 @@ class Visualization:
 
         # self.dumb_background_blit()
         self.smart_background_blit()
+        self.draw_clock()
+
 
         # Once the background is drawn,
         # draw the vehicles
@@ -1243,15 +1232,9 @@ class Visualization:
 
         # We are using sum as a key to see if we need to update demands
         #if sum(self.new_bus_stop_demands) != sum(self.bus_stop_demands) or self.bus_stop_reset == 0:
-        if self.bus_stop_reset % 30 == 0:
+        if self.bus_stop_reset % 60 == 0:
             self.load_bus_stops()
             self.draw_title()
-
-        if self.bus_stop_reset % 3000 == 0:
-            rospy.logwarn('Take it on')
-            self.window.fill((0,0,0))
-            self.areas_to_blit.append([0, 0, int(self.desired_window_width),
-                                   int(self.desired_window_height)])
 
         self.bus_stop_reset += 1
 
@@ -1259,8 +1242,6 @@ class Visualization:
         # window
         pygame.display.flip()
         pygame.event.pump()
-
-        self.draw_clock()
         
         return
 

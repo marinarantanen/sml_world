@@ -16,12 +16,14 @@ from pygtk_chart import bar_chart
 #import random
 
 from sml_world.srv import AddDemand, StartBusRoute
+from sml_world.msg import ProjectedDemand
 import rospy
 
 import mocap
 
 import sys
 import signal
+import threading
 
 green = gtk.gdk.color_parse("green")
 red = gtk.gdk.color_parse("red")
@@ -30,6 +32,7 @@ standardgray = gtk.gdk.Color(red=25000, green=25000, blue=25000, pixel=0)
 
 class CMAWindow(gtk.Window):
     """Create GUI window."""
+
 
     def __init__(self):
         gtk.Window.__init__(self)
@@ -155,6 +158,15 @@ class CMAWindow(gtk.Window):
         fixed.put(Dynstats, 340, 135)
         #fixed.put(Dynvalues, 1041, 185)
         fixed.put(self.Passtats, 775, 135)
+        self.demand = [('now', 7, 'Now'),
+            ('plusone', 15, '+1h'),
+            ('plustwo', 24, '+2h'),
+            ('plusthree', 15, '+3h'),
+            ('plusfour', 10, '+4h')]
+        self.passenger_graph(-1)
+
+        rospy.Subscriber('/projected_demand', ProjectedDemand, self.update_proj_demand)
+        print('Subscriber set up')
 
     def on_queue_clicked(self, button):
         print("\"Queue event\" button was clicked")
@@ -175,12 +187,26 @@ class CMAWindow(gtk.Window):
         self.passenger_graph(event_id)
 
     def on_hero_clicked(self, button):
-        self.add_demand_to_model(-326, 40)
-        self.add_demand_to_model(-386, 30)
-        self.add_demand_to_model(-468, 20)
+        self.add_demand_to_model(-274, 40)
+        self.add_demand_to_model(-302, 30)
+        self.add_demand_to_model(-444, 20)
         rospy.wait_for_service('/start_bus_route')
         start_bus = rospy.ServiceProxy('/start_bus_route', StartBusRoute)
-        start_bus([-326,-386,-468], 814, -468)
+        start_bus([-274,-302,-444], 814, -444)
+
+    def update_proj_demand(self, data):
+        print('UPDATING DEMAND')
+        proj_demand = list(data.next4hoursdemand)
+        if not proj_demand:
+            return
+        print(proj_demand)
+        self.demand = [('now', proj_demand[0], 'Now'),
+            ('plusone', proj_demand[1], '+1h'),
+            ('plustwo', proj_demand[2], '+2h'),
+            ('plusthree', proj_demand[3], '+3h'),
+            ('plusfour', proj_demand[4], '+4h'),
+           ]
+        self.passenger_graph(-1)
 
     def add_demand_to_model(self, bus_id, demand_added):
         rospy.wait_for_service('/add_demand')
@@ -196,9 +222,10 @@ class CMAWindow(gtk.Window):
         self.stat_graph(event_id)
         self.passenger_graph(event_id)
 
+    
+
+        '''
     def demand(self, event_id):
-        #demand = TrafficDemand
-        #Projected demand
         demand = [('now', 100, 'Now'),
             ('plusone', 52, '+1h'),
             ('plustwo', 20, '+2h'),
@@ -206,7 +233,7 @@ class CMAWindow(gtk.Window):
             ('plusfour', 78, '+4h'),
            ]
         return demand
-
+        '''
     def stats(self, event_id):
         #Routing statistics
         if event_id == 0:
@@ -280,8 +307,6 @@ class CMAWindow(gtk.Window):
             statchart.add_bar(bar)
             #statchart.queue_draw()
 
-        for widget in self.hbox_graph.get_children():
-            self.hbox_graph.remove(widget)
 
         self.hbox_graph.pack_start(statchart, True, True, 0)
 
@@ -295,20 +320,24 @@ class CMAWindow(gtk.Window):
         statchart.show()
 
     def passenger_graph(self, event_id):
-        data = self.demand(event_id)
-
+        # data = self.demand(event_id)
         barchart = bar_chart.BarChart()
 
         barchart.title.set_text('Estimated number of passengers upcoming hours')
         barchart.grid.set_visible(True)
         barchart.grid.set_line_style(pygtk_chart.LINE_STYLE_DOTTED)
         barchart.set_mode(bar_chart.MODE_HORIZONTAL)
+        rospy.logwarn(self.demand)
 
-        for bar_info in data:
-            bar = bar_chart.Bar(*bar_info)
+        for bar_info in self.demand:
+            bar_info = list(bar_info)
+            bar = bar_chart.Bar(bar_info[0], bar_info[1], bar_info[2])
             bar.set_color(standardgray)
             barchart.add_bar(bar)
             barchart.queue_draw()
+
+        for widget in self.hbox_graph.get_children():
+            self.hbox_graph.remove(widget)
 
         self.hbox_graph.pack_start(barchart)
 
@@ -316,6 +345,7 @@ class CMAWindow(gtk.Window):
             print "Bar '%s' clicked." % bar.get_label()
 
         barchart.connect("bar-clicked", cb_bar_clicked)
+
         barchart.show()
 
 
@@ -372,7 +402,6 @@ def qualisys_info():
 
     def signal_handler(signal, frame):
         stop = True
-        print "What?"
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -394,10 +423,12 @@ def qualisys_info():
     #while not stop:
         #pose = body.getPose()
 
-
+rospy.init_node('GUI')
 win = CMAWindow()
 win.connect("delete-event", gtk.main_quit)
 #win.resize(1200, 680)
 win.show_all()
-
-gtk.main()
+gtk.gdk.threads_init()
+thread = threading.Thread(target=gtk.main)
+thread.start()
+rospy.spin()

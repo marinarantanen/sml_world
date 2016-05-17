@@ -102,9 +102,8 @@ def update_traffic_demand(td, td_dict):
 def update_bus_stops(bus_status, bus_args):
     #Todo; Make this less terrifyingly disgusting
     '''
-    Takes tuple to 
+    Takes tuple to update the bus stops
     '''
-    rospy.logwarn('update')
     bus_stops = bus_args[0]
     bus_demands = bus_args[1]
     if len(bus_demands) != len(bus_stops):
@@ -118,7 +117,6 @@ time = 0
 def update_time(new_time):
     global time
     time = new_time.time
-    rospy.logwarn(time)
 
 def sml_world_central():
     """Inizialize ROS-node 'sml_world' and start subs, pubs and srvs."""
@@ -141,7 +139,7 @@ def sml_world_central():
     launcher = ROSLaunchExtended()
 
     pub_ws = rospy.Publisher('world_state', WorldState, queue_size=10)
-    rate = rospy.Rate(60)  # 60hz
+    rate = rospy.Rate(30)  # 60hz
     while not rospy.is_shutdown():
         while not launcher.launch_queue.empty():
             launcher.spawn_vehicle()

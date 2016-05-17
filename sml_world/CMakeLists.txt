@@ -58,6 +58,7 @@ add_message_files(
   BusInformation.msg
   BusCommands.msg
   GetTime.msg
+  ProjectedDemand.msg
 )
 
 ## Generate services in the 'srv' folder
